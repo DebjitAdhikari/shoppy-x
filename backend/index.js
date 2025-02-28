@@ -1,4 +1,5 @@
 import express from "express"
+import cors from "cors"
 import dotenv from "dotenv"
 import morgan from "morgan"
 import connectDB from "./config/database.js"
@@ -7,7 +8,11 @@ import userRouter from "./routers/userRouter.js"
 dotenv.config()
 
 const app =express()
-
+app.use(cors({
+    origin:"http://localhost:5173",
+    method:["GET", "POST", "PUT","PATCH", "DELETE"],
+    credentials:true
+}))
 //middlewares
 app.use(express.json())
 app.use(morgan("dev"))

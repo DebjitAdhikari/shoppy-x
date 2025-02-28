@@ -12,73 +12,111 @@ import {
   Upload,
   Play
 } from 'lucide-react';
+import getProductById from '../services/products/getProductById.js';
 
-const product = {
-  id: 1,
-  name: 'Classic White Sneakers',
-  price: 89.99,
-  discount: 20,
-  rating: 4.5,
-  reviews: 128,
-  stock: 15,
-  description: 'Premium quality sneakers made with genuine leather and durable rubber sole. Perfect for casual wear and everyday comfort.',
-  longDescription: `Experience unparalleled comfort and style with our Classic White Sneakers. Crafted with premium materials and attention to detail, these sneakers are designed to elevate your everyday look while ensuring maximum comfort.
+// const product = {
+//   id: 1,
+//   name: 'Classic White Sneakers',
+//   price: 89.99,
+//   discount: 20,
+//   rating: 4.5,
+//   reviews: 128,
+//   stock: 15,
+//   description: 'Premium quality sneakers made with genuine leather and durable rubber sole. Perfect for casual wear and everyday comfort.',
+//   longDescription: `Experience unparalleled comfort and style with our Classic White Sneakers. Crafted with premium materials and attention to detail, these sneakers are designed to elevate your everyday look while ensuring maximum comfort.
 
-The genuine leather upper provides durability and a luxurious feel, while the breathable mesh lining keeps your feet cool throughout the day. The cushioned insole offers superior comfort for extended wear, and the durable rubber outsole ensures excellent traction and longevity.
+// The genuine leather upper provides durability and a luxurious feel, while the breathable mesh lining keeps your feet cool throughout the day. The cushioned insole offers superior comfort for extended wear, and the durable rubber outsole ensures excellent traction and longevity.
 
-Whether you're running errands, meeting friends, or heading to work, these versatile sneakers will complement any casual outfit. The timeless white design with subtle branding makes them a perfect addition to your footwear collection.`,
-  images: [
-    'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=2012&q=80',
-    'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2025&q=80',
-    'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1974&q=80',
-  ],
-  sizes: ['US 7', 'US 8', 'US 9', 'US 10', 'US 11'],
-  features: [
-    'Genuine leather upper',
-    'Cushioned insole',
-    'Durable rubber outsole',
-    'Breathable mesh lining',
-  ],
-  allreviews: [
-    {
-      id: 1,
-      name: 'Sanjit Pal',
-      rating: 5,
-      date: '2024-03-15',
-      text: `These sneakers are absolutely amazing! The comfort level is outstanding, and they look even better in person. I've been wearing them daily for the past month, and they still look brand new.`,
-      media: [
-        {
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-        },
-        {
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-        },
-        {
-          type: 'video',
-          url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
-          thumbnail: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Rohit Singh',
-      rating: 4,
-      date: '2024-03-10',
-      text: `Great sneakers overall! The quality is top-notch, and they're very comfortable. The only reason I'm giving 4 stars instead of 5 is that they run slightly large. I'd recommend going half a size down.`,
-      media: [
-        {
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-        }
-      ]
-    }
-  ]
-};
-
+// Whether you're running errands, meeting friends, or heading to work, these versatile sneakers will complement any casual outfit. The timeless white design with subtle branding makes them a perfect addition to your footwear collection.`,
+//   images: [
+//     'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=2012&q=80',
+//     'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2025&q=80',
+//     'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1974&q=80',
+//   ],
+//   sizes: ['US 7', 'US 8', 'US 9', 'US 10', 'US 11'],
+//   features: [
+//     'Genuine leather upper',
+//     'Cushioned insole',
+//     'Durable rubber outsole',
+//     'Breathable mesh lining',
+//   ],
+//   allreviews: [
+//     {
+//       id: 1,
+//       name: 'Sanjit Pal',
+//       rating: 5,
+//       date: '2024-03-15',
+//       text: `These sneakers are absolutely amazing! The comfort level is outstanding, and they look even better in person. I've been wearing them daily for the past month, and they still look brand new.`,
+//       media: [
+//         {
+//           type: 'image',
+//           url: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+//         },
+//         {
+//           type: 'image',
+//           url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+//         },
+//         {
+//           type: 'video',
+//           url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+//           thumbnail: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+//         }
+//       ]
+//     },
+//     {
+//       id: 2,
+//       name: 'Karan Yadav',
+//       rating: 4,
+//       date: '2024-03-10',
+//       text: `Great sneakers overall! The quality is top-notch, and they're very comfortable. The only reason I'm giving 4 stars instead of 5 is that they run slightly large. I'd recommend going half a size down.`,
+//       media: [
+//         {
+//           type: 'image',
+//           url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+//         }
+//       ]
+//     }
+//   ]
+// };
+const allreviews= [
+  {
+    id: 1,
+    name: 'Sanjit Pal',
+    rating: 5,
+    date: '2024-03-15',
+    text: `These sneakers are absolutely amazing! The comfort level is outstanding, and they look even better in person. I've been wearing them daily for the past month, and they still look brand new.`,
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+      },
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+      },
+      {
+        type: 'video',
+        url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Karan Yadav',
+    rating: 4,
+    date: '2024-03-10',
+    text: `Great sneakers overall! The quality is top-notch, and they're very comfortable. The only reason I'm giving 4 stars instead of 5 is that they run slightly large. I'd recommend going half a size down.`,
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+      }
+    ]
+  }
+]
 const ProductDetails = () => {
+  const [product,setProduct]=useState({})
   const [currentImage, setCurrentImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,13 +129,20 @@ const ProductDetails = () => {
   });
   const { id } = useParams();
 
-  const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % product.images.length);
-  };
+  
 
-  const prevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + product.images.length) % product.images.length);
+  const nextImage = () => {
+    if (product.images && product.images.length > 0) {
+      setCurrentImage((prev) => (prev + 1) % product.images.length);
+    }
   };
+  
+  const prevImage = () => {
+    if (product.images && product.images.length > 0) {
+      setCurrentImage((prev) => (prev - 1 + product.images.length) % product.images.length);
+    }
+  };
+  
 
   const discountedPrice = product.price * (1 - product.discount / 100);
 
@@ -134,18 +179,32 @@ const ProductDetails = () => {
   };
   useEffect(()=>{
     topRef.current?.scrollIntoView({behavior:"smooth"})
+    console.log(id)
   },[])
+
+  async function fetchProductDetails(){
+    const {data} = await getProductById(id)
+    console.log(data)
+    setProduct(data)
+  }
+  useEffect(()=>{
+    fetchProductDetails()
+  },[])
+
   return (
     <div ref={topRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Image Gallery */}
         <div className="relative">
           <div className="relative h-[500px] rounded-xl overflow-hidden">
-            <img
-              src={product.images[currentImage]}
-              alt={product.name}
+            {
+              product?.images?.length > 0 &&
+            (<img
+              src={product?.images[currentImage].url}
+              alt={product?.name}
               className="w-full h-full object-cover"
-            />
+            />)
+            }
             <button
               onClick={prevImage}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white transition-colors duration-300"
@@ -160,7 +219,7 @@ const ProductDetails = () => {
             </button>
           </div>
           <div className="flex space-x-4 mt-4 overflow-x-auto pb-2">
-            {product.images.map((image, index) => (
+            {product?.images?.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentImage(index)}
@@ -168,7 +227,7 @@ const ProductDetails = () => {
                   currentImage === index ? 'ring-2 ring-blue-500' : ''
                 }`}
               >
-                <img src={image} alt="" className="w-full h-full object-cover" />
+                <img src={image.url} alt="" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -192,7 +251,7 @@ const ProductDetails = () => {
               ))}
               <span className="ml-2 text-gray-600">{product.rating}</span>
             </div>
-            <span className="text-gray-600">({product.reviews} reviews)</span>
+            <span className="text-gray-600">({product?.reviews} reviews)</span>
           </div>
 
           <div className="mb-6">
@@ -212,19 +271,23 @@ const ProductDetails = () => {
               )}
             </div>
             <p className="text-sm text-gray-600 mt-2">
-              Only {product.stock} items left!
+              Only {product.inStock} items left!
             </p>
           </div>
 
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3">Description</h3>
-            <p className="text-gray-600 whitespace-pre-line">{product.longDescription}</p>
+            <p className="text-gray-600 whitespace-pre-line">{product?.description}</p>
           </div>
 
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">Select Size</h3>
+            <h3 className="text-lg font-semibold mb-3">
+              {
+                product.availableSize && "Select Size"
+                }
+</h3>
             <div className="flex flex-wrap gap-3">
-              {product.sizes.map((size) => (
+              {product.availableSize?.split(",").map((size) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
@@ -243,7 +306,7 @@ const ProductDetails = () => {
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-3">Product Features</h3>
             <ul className="space-y-2">
-              {product.features.map((feature, index) => (
+              {product.features?.split(",").map((feature, index) => (
                 <li key={index} className="flex items-center text-gray-600">
                   <Shield className="h-5 w-5 text-green-500 mr-2" />
                   {feature}
@@ -365,7 +428,7 @@ const ProductDetails = () => {
 
         {/* Reviews List */}
         <div className="space-y-8">
-          {product.allreviews.map((review) => (
+          {allreviews.map((review) => (
             <div key={review.id} className="border-b border-gray-200 pb-8">
               <div className="flex items-center justify-between mb-4">
                 <div>

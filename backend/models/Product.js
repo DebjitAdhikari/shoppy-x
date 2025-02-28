@@ -11,7 +11,11 @@ const productSchema = new mongoose.Schema({
     description:String,
     availableSize:String, 
     features:String,
-    images:[String]
+    category:String,
+    images:[{
+        url:String,
+        public_id:String
+    }]
 })
 
 const Product = mongoose.model("Products",productSchema)
