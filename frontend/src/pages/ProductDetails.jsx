@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
@@ -12,116 +11,18 @@ import {
   Upload,
   Play
 } from 'lucide-react';
+import Loader from '../components/Loader.jsx';
 import getProductById from '../services/products/getProductById.js';
 
-// const product = {
-//   id: 1,
-//   name: 'Classic White Sneakers',
-//   price: 89.99,
-//   discount: 20,
-//   rating: 4.5,
-//   reviews: 128,
-//   stock: 15,
-//   description: 'Premium quality sneakers made with genuine leather and durable rubber sole. Perfect for casual wear and everyday comfort.',
-//   longDescription: `Experience unparalleled comfort and style with our Classic White Sneakers. Crafted with premium materials and attention to detail, these sneakers are designed to elevate your everyday look while ensuring maximum comfort.
 
-// The genuine leather upper provides durability and a luxurious feel, while the breathable mesh lining keeps your feet cool throughout the day. The cushioned insole offers superior comfort for extended wear, and the durable rubber outsole ensures excellent traction and longevity.
-
-// Whether you're running errands, meeting friends, or heading to work, these versatile sneakers will complement any casual outfit. The timeless white design with subtle branding makes them a perfect addition to your footwear collection.`,
-//   images: [
-//     'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=2012&q=80',
-//     'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2025&q=80',
-//     'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1974&q=80',
-//   ],
-//   sizes: ['US 7', 'US 8', 'US 9', 'US 10', 'US 11'],
-//   features: [
-//     'Genuine leather upper',
-//     'Cushioned insole',
-//     'Durable rubber outsole',
-//     'Breathable mesh lining',
-//   ],
-//   allreviews: [
-//     {
-//       id: 1,
-//       name: 'Sanjit Pal',
-//       rating: 5,
-//       date: '2024-03-15',
-//       text: `These sneakers are absolutely amazing! The comfort level is outstanding, and they look even better in person. I've been wearing them daily for the past month, and they still look brand new.`,
-//       media: [
-//         {
-//           type: 'image',
-//           url: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-//         },
-//         {
-//           type: 'image',
-//           url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-//         },
-//         {
-//           type: 'video',
-//           url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
-//           thumbnail: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-//         }
-//       ]
-//     },
-//     {
-//       id: 2,
-//       name: 'Karan Yadav',
-//       rating: 4,
-//       date: '2024-03-10',
-//       text: `Great sneakers overall! The quality is top-notch, and they're very comfortable. The only reason I'm giving 4 stars instead of 5 is that they run slightly large. I'd recommend going half a size down.`,
-//       media: [
-//         {
-//           type: 'image',
-//           url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-//         }
-//       ]
-//     }
-//   ]
-// };
-const allreviews= [
-  {
-    id: 1,
-    name: 'Sanjit Pal',
-    rating: 5,
-    date: '2024-03-15',
-    text: `These sneakers are absolutely amazing! The comfort level is outstanding, and they look even better in person. I've been wearing them daily for the past month, and they still look brand new.`,
-    media: [
-      {
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-      },
-      {
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-      },
-      {
-        type: 'video',
-        url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Karan Yadav',
-    rating: 4,
-    date: '2024-03-10',
-    text: `Great sneakers overall! The quality is top-notch, and they're very comfortable. The only reason I'm giving 4 stars instead of 5 is that they run slightly large. I'd recommend going half a size down.`,
-    media: [
-      {
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-      }
-    ]
-  }
-]
 const ProductDetails = () => {
   const [product,setProduct]=useState({})
+  const [isProductLoading,setIsProductLoading]=useState(true)
   const [currentImage, setCurrentImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const topRef =useRef()
-  const [modalMedia, setModalMedia] = useState({ items: [], currentIndex: 0 });
+  const [modalMedia, setModalMedia] = useState({ items: [], currentIndex: 0, mediaType: 'image' });
   const [newReview, setNewReview] = useState({
     rating: 0,
     text: '',
@@ -146,8 +47,8 @@ const ProductDetails = () => {
 
   const discountedPrice = product.price * (1 - product.discount / 100);
 
-  const openModal = (media, startIndex) => {
-    setModalMedia({ items: media, currentIndex: startIndex });
+  const openModal = (media, startIndex, mediaType = 'image') => {
+    setModalMedia({ items: media, currentIndex: startIndex, mediaType });
     setIsModalOpen(true);
   };
 
@@ -180,18 +81,23 @@ const ProductDetails = () => {
   useEffect(()=>{
     topRef.current?.scrollIntoView({behavior:"smooth"})
     console.log(id)
-  },[])
+  },[isProductLoading])
 
   async function fetchProductDetails(){
     const {data} = await getProductById(id)
     console.log(data)
+    setIsProductLoading(false)
     setProduct(data)
   }
   useEffect(()=>{
+
     fetchProductDetails()
   },[])
 
   return (
+    <>
+    {
+      isProductLoading?<Loader></Loader>:
     <div ref={topRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Image Gallery */}
@@ -251,7 +157,7 @@ const ProductDetails = () => {
               ))}
               <span className="ml-2 text-gray-600">{product.rating}</span>
             </div>
-            <span className="text-gray-600">({product?.reviews} reviews)</span>
+            <span className="text-gray-600">({product.reviews?.length} reviews)</span>
           </div>
 
           <div className="mb-6">
@@ -428,11 +334,11 @@ const ProductDetails = () => {
 
         {/* Reviews List */}
         <div className="space-y-8">
-          {allreviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-200 pb-8">
+          {product.reviews?.map((review) => (
+            <div key={review._id} className="border-b border-gray-200 pb-8">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h4 className="font-semibold text-lg">{review.name}</h4>
+                  <h4 className="font-semibold text-lg">{review.userName}</h4>
                   <div className="flex items-center space-x-2">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
@@ -447,32 +353,46 @@ const ProductDetails = () => {
                       ))}
                     </div>
                     <span className="text-sm text-gray-500">
-                      {new Date(review.date).toLocaleDateString()}
+                      {new Date(review.reviewedDate).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               </div>
               
-              <p className="text-gray-600 mb-4">{review.text}</p>
+              <p className="text-gray-600 mb-4">{review.description}</p>
               
-              {review.media && review.media.length > 0 && (
+              {(review.images ||review.videos) && 
+              (review.images.length > 0 || review.videos.length>0) && (
                 <div className="flex space-x-4 overflow-x-auto pb-2">
-                  {review.media.map((media, index) => (
+                  {/* for review images */}
+                  {review.images?.map((media, index) => (
                     <button
-                      key={index}
-                      onClick={() => openModal(review.media, index)}
+                      key={`img-${index}`}
+                      onClick={() => openModal(review.images, index, 'image')}
                       className="relative flex-shrink-0 h-24 w-24 rounded-lg overflow-hidden group"
                     >
                       <img
-                        src={media.type === 'video' ? media.thumbnail : media.url}
+                        src={media.url}
                         alt=""
                         className="h-full w-full object-cover"
                       />
-                      {media.type === 'video' && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-                          <Play className="h-8 w-8 text-white" />
-                        </div>
-                      )}
+                    </button>
+                  ))}
+                  {/* for review videos */}
+                  {review.videos?.map((media, index) => (
+                    <button
+                      key={`vid-${index}`}
+                      onClick={() => openModal(review.videos, index, 'video')}
+                      className="relative flex-shrink-0 h-24 w-24 rounded-lg overflow-hidden group"
+                    >
+                      <img
+                        src="/images/video-icon.png"
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+                        {/* <Play className="h-8 w-8 text-white" /> */}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -494,7 +414,7 @@ const ProductDetails = () => {
             </button>
             
             <div className="relative aspect-video">
-              {modalMedia.items[modalMedia.currentIndex].type === 'video' ? (
+              {modalMedia.mediaType === 'video' ? (
                 <video
                   src={modalMedia.items[modalMedia.currentIndex].url}
                   controls
@@ -541,6 +461,8 @@ const ProductDetails = () => {
         </div>
       )}
     </div>
+    }
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import Product from "../models/Product.js"
+import Product from "../models/productModel.js"
 import cloudinary from "../config/cloudinary.js"
 export async function getAllProducts(req,res,next){
     try {
@@ -51,7 +51,7 @@ export async function createProduct(req,res,next){
 export async function getProduct(req,res,next){
     try {
       
-      const product = await Product.findById(req.params.id)
+      const product = await Product.findById(req.params.id).populate("reviews")
       if(!product)
         return res.status(404).json({
           status:"failed",

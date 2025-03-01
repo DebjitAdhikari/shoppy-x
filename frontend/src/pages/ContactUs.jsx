@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
+import getContact from '../services/contact/getContact.js';
+import Loader from '../components/Loader.jsx';
 
 const ContactUs = () => {
+  const [companyContact,setCompanyContact]=useState([])
+  const [isContactLoading,setIsContactLoading]=useState(true)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,7 +27,20 @@ const ContactUs = () => {
     });
   };
 
+  async function fetchContact(){
+    const {data} = await getContact()
+    // console.log(data)
+    setCompanyContact(data)
+    setIsContactLoading(false)
+  }
+  useEffect(()=>{
+    fetchContact()
+  },[])
+
   return (
+    <>
+    {
+      isContactLoading?<Loader></Loader>:
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-16">
@@ -46,7 +63,7 @@ const ContactUs = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">Email</p>
-                    <p className="text-sm text-gray-600">debjit@example.com</p>
+                    <p className="text-sm text-gray-600">{companyContact[0]?.email}</p>
                   </div>
                 </div>
 
@@ -56,7 +73,7 @@ const ContactUs = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">Phone</p>
-                    <p className="text-sm text-gray-600">+91 987654321</p>
+                    <p className="text-sm text-gray-600">+91 {companyContact[0]?.contactNo}</p>
                   </div>
                 </div>
 
@@ -67,8 +84,8 @@ const ContactUs = () => {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">Address</p>
                     <p className="text-sm text-gray-600">
-                      Sector 5<br />
-                      Kolkata, India, 700023
+                      {companyContact[0]?.address.area}<br />
+                      {companyContact[0]?.address.city}, {companyContact[0]?.address.country}, {companyContact[0]?.address.postalCode}
                     </p>
                   </div>
                 </div>
@@ -186,6 +203,8 @@ const ContactUs = () => {
         </div>
       </div>
     </div>
+    }
+    </>
   );
 };
 

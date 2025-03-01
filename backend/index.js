@@ -5,6 +5,8 @@ import morgan from "morgan"
 import connectDB from "./config/database.js"
 import productsRouter from "./routers/productsRouter.js"
 import userRouter from "./routers/userRouter.js"
+import contactRouter from "./routers/contactRouter.js"
+import reviewRouter from "./routers/reviewRouter.js"
 dotenv.config()
 
 const app =express()
@@ -23,7 +25,9 @@ connectDB()
 
 
 app.use("/api/v1/products",productsRouter)
+app.use("/api/v1/reviews",reviewRouter)
 app.use("/api/v1/users",userRouter)
+app.use("/api/v1/contact",contactRouter)
 
 
 app.use("*",(req,res,next)=>{
