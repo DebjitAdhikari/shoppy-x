@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User, Package, Heart, CreditCard, Settings, LogOut, Camera, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from "lucide-react";
 
 const tabs = [
   { name: 'Personal Info', icon: User },
@@ -11,6 +12,11 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('Personal Info');
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isLoggedIn,setIsLoggedIn]=useState(true)
+  const [showPassword, setShowPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -60,8 +66,43 @@ const Profile = () => {
     ]
   };
 
+  useEffect(()=>{
+    window.scrollTo(0,0)
+  },[])
+
   return (
+    <>
+    
+    {
+      !isLoggedIn?
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
+      <div className="max-w-md w-full flex flex-col gap-6 bg-white p-8 shadow-lg sm:rounded-lg sm:px-10">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900">Start Ordering Today!</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Create an account to unlock exclusive deals and faster checkout.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Link
+            to="/login"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Login
+          </Link>
+
+          <Link
+            to="/signup"
+            className="w-full flex justify-center py-3 px-4 border border-blue-600 rounded-lg text-blue-600 bg-white hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Sign Up
+          </Link>
+        </div>
+      </div>
+    </div>:
     <div className="max-w-7xl min-h-[90vh] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar */}
         <div className="w-full md:w-64 flex-shrink-0">
@@ -116,6 +157,7 @@ const Profile = () => {
         <div className="flex-1">
           <div className="bg-white rounded-xl shadow-sm p-6">
             {activeTab === 'Personal Info' && (
+              <>
               <div>
                 <h3 className="text-xl font-semibold mb-6">Personal Information</h3>
                 
@@ -142,7 +184,7 @@ const Profile = () => {
                         </button>
                       </div>
                       <p className="mt-2 text-sm text-gray-500">
-                        JPG, GIF or PNG. Max size of 2MB.
+                        JPG, JPEG or PNG. Max size of 2MB.
                       </p>
                     </div>
                   </div>
@@ -166,7 +208,8 @@ const Profile = () => {
                     <input
                       type="email"
                       value={user.email}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled="true"
+                      className="w-full px-4 py-2 border bg-slate-200 text-slate-500 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -241,6 +284,39 @@ const Profile = () => {
                   </button>
                 </div>
               </div>
+              <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+              <h3 className="text-xl font-semibold mb-6">Update Password</h3>
+              <div className="space-y-4">
+                {[
+                  { label: "Current Password", state: currentPassword, setState: setCurrentPassword },
+                  { label: "New Password", state: newPassword, setState: setNewPassword },
+                  { label: "Confirm Password", state: confirmPassword, setState: setConfirmPassword },
+                ].map(({ label, state, setState }, index) => (
+                  <div key={index} className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      className="absolute top-9 right-3 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6">
+                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full">
+                  Update Password
+                </button>
+              </div>
+            </div>
+              </>
             )}
 
             {activeTab === 'Orders' && (
@@ -337,6 +413,9 @@ const Profile = () => {
       </div>
       )}
     </div>
+
+    }
+    </>
   );
 };
 

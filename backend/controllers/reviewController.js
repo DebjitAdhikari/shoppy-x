@@ -50,7 +50,7 @@ export async function createReview(req,res,next) {
 
         const imageUrls = await Promise.all(imageUploadPromises||[])
         const videoUrls = await Promise.all(videoUploadPromises||[])
-
+        console.log(imageUrls,videoUrls)
         const newReview = await Review.create({
             userName,
             userId,
@@ -71,15 +71,71 @@ export async function createReview(req,res,next) {
         next(err)
     }
 }
-export async function getReview(req,res,next) {
+export async function getAllReviews(req,res,next) {
     try {
-        const data = await Review.find({})
-
+        const reviews = await Review.find({})        
         res.status(201).json({
             message:"success",
-            data
+            data:reviews
         })
-
+    } catch (err) {
+        next(err)
+    }
+}
+export async function getReview(req,res,next) {
+    try {
+        const review = await Review.findById(req.params.id)    
+        if(!review) 
+            return res.status(400).json({
+                status:"failed",
+                message:"Review not found"
+            })    
+        res.status(201).json({
+            message:"success",
+            data:review
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+export async function updateReview(req,res,next) {
+    try {
+        const review = await Review.findByIdAndUpdate(req.params.id,req.body,{
+            new:true,
+            runValidators:true
+        })    
+        if(!review) 
+            return res.status(400).json({
+                status:"failed",
+                message:"Review not found"
+            })    
+        res.status(201).json({
+            message:"success",
+            data:review
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+export async function deleteReview(req,res,next) {
+    try {
+        const review = await Review.findById(req.params.id) 
+        if(!review) 
+            return res.status(400).json({
+                status:"failed",
+                message:"Review not found"
+            })   
+        const reviewImages = review.images?.map(img=>cloudinary.uploader.destroy(img.public_id)) 
+        const reviewVideos = review.videos?.map(video=>
+            cloudinary.uploader.destroy(video.public_id,{resource_type:"video"}))
+            
+        await Promise.all(reviewImages||[])
+        await Promise.all(reviewVideos||[])
+        await Review.findByIdAndDelete(review._id)
+        res.status(201).json({
+            message:"success",
+            data:null
+        })
     } catch (err) {
         next(err)
     }

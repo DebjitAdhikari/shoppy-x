@@ -79,8 +79,8 @@ const ProductDetails = () => {
     }
   };
   useEffect(()=>{
-    topRef.current?.scrollIntoView({behavior:"smooth"})
-    console.log(id)
+    // topRef.current?.scrollIntoView({behavior:"smooth"})
+    window.scrollTo(0,0)
   },[isProductLoading])
 
   async function fetchProductDetails(){
@@ -97,7 +97,10 @@ const ProductDetails = () => {
   return (
     <>
     {
-      isProductLoading?<Loader></Loader>:
+      isProductLoading?
+      <div className='h-[80vh]'>
+        <Loader></Loader>
+        </div>:
     <div ref={topRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Image Gallery */}

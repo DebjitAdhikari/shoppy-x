@@ -1,21 +1,30 @@
 import mongoose from "mongoose";
-const userModel = new mongoose.Schema({
+import bcrypt from "bcryptjs"
+const userSchema = new mongoose.Schema({
     name:{
         type:String,
         required:[true,"A user should have a name."]
     },
+    password:{
+        type:String,
+        select:false,
+        required:[true,"Password is required"],
+    },
     profileImage:{
         url:{
             type:String,
-            required:true
+            default:"https://res.cloudinary.com/dy5s9hgoa/image/upload/v1740895975/ShoppyX/Users/ndcuvtpn9uhiuxxsxnyr.png",
+            // required:true
         },
         public_id:{
             type:String,
-            required:true
+            default:"ShoppyX/Users/default_profile_image"
+            // required:true
         }
     },
     email:{
         type:String,
+        unique:true,
         required:[true,"User should have a email id"]
     },
     contactNo:{
@@ -45,5 +54,15 @@ const userModel = new mongoose.Schema({
         }
     },
 })
-const User = mongoose.model("User",userModel)
+
+userSchema.pre("save",async function (next){
+    if(!this.isModified("password")) return next()
+    this.password = await bcrypt.hash(this.password,12)
+    next()
+})
+userSchema.methods.checkPassword=async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword,this.password)
+}
+
+const User = mongoose.model("User",userSchema)
 export default User

@@ -7,6 +7,7 @@ import productsRouter from "./routers/productsRouter.js"
 import userRouter from "./routers/userRouter.js"
 import contactRouter from "./routers/contactRouter.js"
 import reviewRouter from "./routers/reviewRouter.js"
+import cookieParser from "cookie-parser"
 dotenv.config()
 
 const app =express()
@@ -17,6 +18,7 @@ app.use(cors({
 }))
 //middlewares
 app.use(express.json())
+app.use(cookieParser())
 app.use(morgan("dev"))
 
 //request

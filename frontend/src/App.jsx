@@ -12,6 +12,8 @@ import CategoryProducts from './pages/CategoryProducts';
 import ContactUs from './pages/ContactUs';
 import OffersPage from './pages/OffersPage';
 import OrderDetails from './pages/OrderDetails';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 
 // const router=createBrowserRouter([
@@ -63,6 +65,14 @@ const router = createBrowserRouter([
       {
         path:"/",
         element:<HomePage></HomePage>
+      },
+      {
+        path:"/login",
+        element:<Login></Login>
+      },
+      {
+        path:"/signup",
+        element:<Signup></Signup>
       },
       {
         path:"/products/:id",

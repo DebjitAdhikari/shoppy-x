@@ -2,14 +2,17 @@ import { ArrowRight, Star } from "lucide-react";
 import { useEffect,useState } from "react";
 import { useNavigate } from "react-router-dom"
 import getAllProducts from "../services/products/getAllProducts.js";
+import Loader from "./Loader.jsx";
 
 function FeaturedProduts() {
     const [products,setProducts]=useState([])
+    const [isProductLoading,setIsProductLoading]=useState(true)
     const navigate =useNavigate()
     async function fetchAllProducts(){
       const {data} = await getAllProducts()
       console.log(data)
       setProducts(data)
+      setIsProductLoading(false)
     }
     useEffect(()=>{
       fetchAllProducts()
@@ -18,8 +21,12 @@ function FeaturedProduts() {
         <section className="py-16 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Products</h2>
+        {
+          isProductLoading?<Loader></Loader>:
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
+          {
+          
+          products.map((product) => (
             <div key={product._id} className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow duration-300">
               <div className="relative h-64">
                 <img
@@ -55,6 +62,7 @@ function FeaturedProduts() {
             </div>
           ))}
         </div>
+        }
       </div>
         </section>
     )
