@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import login from '../services/users/login.js';
-import checkLogin from '../services/users/checkLogin.js';
-
-const Login = () => {
+import signInAdmin from '../../../services/admin/signInAdmin.js';
+const AdminLogin = ({setIsAdminLoggedIn}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isDetailsWrong,setIsDetailsWrong]=useState(false)
   const [isLoggingIn,setIsLoggingIn]=useState(false)
-  const navigate = useNavigate()
 
-  async function checkIsLoggedIn() {
-    const data = await checkLogin()
-    if(data.data.status==="success")
-      navigate("/profile")
-  }
+  
 
-  async function userLogin(){
+  async function adminLogin(){
     setIsLoggingIn(true)
     const formData = new FormData()
     formData.append("email",email)
     formData.append("password",password)
     formData.append("remember",rememberMe)
     try {
-      const data = await login(formData)
-      console.log(data)
+      const {data} = await signInAdmin(formData)
+      if(data.status==="success")
+        setIsAdminLoggedIn(true)
       setIsDetailsWrong(false)
       setIsLoggingIn(false)
-      navigate("/profile")
     } catch (err) {
       console.log("login failed")
       setIsDetailsWrong(true)
@@ -40,21 +32,19 @@ const Login = () => {
   }
   useEffect(() => {
     window.scrollTo(0, 0);
-    checkIsLoggedIn()
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log({ email, password, rememberMe });
-    userLogin()
+    adminLogin()
+    
   };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-roboto font-extrabold text-gray-900">Welcome back</h2>
+          <h2 className="mt-6 text-3xl font-roboto font-extrabold text-gray-900">Welcome back, Admin</h2>
           <p className="mt-2 text-sm text-gray-600">
             Please sign in to your account
           </p>
@@ -158,31 +148,11 @@ const Login = () => {
             }
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Don't have an account?
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <Link
-                to="/signup"
-                className="w-full flex justify-center py-3 px-4 border border-blue-600 rounded-lg text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
-                Create an account
-              </Link>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default AdminLogin;

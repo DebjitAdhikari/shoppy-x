@@ -8,6 +8,7 @@ export async function getAllProducts(req,res,next){
         data:products
       })
     } catch (err) {
+      
       next(err)       
     }
 }

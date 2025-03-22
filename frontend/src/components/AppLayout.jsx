@@ -1,13 +1,15 @@
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import Navbar from "./Navbar"
 import Footer from "./Footer"
 
 function AppLayout() {
+    const location = useLocation()
+    const isAdminRoute = location.pathname.startsWith("/admin")
     return (
         <div className="bg-gray-100">
-            <Navbar></Navbar>
+            {!isAdminRoute && <Navbar></Navbar>}
             <Outlet></Outlet>
-            <Footer></Footer>
+            {!isAdminRoute && <Footer></Footer>}
         </div>
     )
 }

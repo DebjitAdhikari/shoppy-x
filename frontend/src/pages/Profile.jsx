@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { User, Package, Heart, CreditCard, Settings, LogOut, Camera, Upload } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Bounce, ToastContainer, toast } from 'react-toastify';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from "lucide-react";
+import getMyDetails from '../services/users/getMyDetails';
+import logout from '../services/users/logout.js';
+import checkLogin from '../services/users/checkLogin.js';
+import updateMyDetails from '../services/users/updateMyDetails.js';
+import uploadMyPhoto from '../services/users/uploadMyPhoto.js';
+import updateMyPassword from '../services/users/updateMyPassword.js';
+import deleteMyPhoto from '../services/users/deleteMyPhoto.js';
 
 const tabs = [
   { name: 'Personal Info', icon: User },
@@ -12,16 +20,54 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('Personal Info');
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile,setSelectedFile]=useState(null)
   const [isLoggedIn,setIsLoggedIn]=useState(true)
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userPhoto,setUserPhoto]=useState("")
+  const [isUploading, setIsUploading]=useState(false)
+  const [hasAnythingChanged,setHasAnythingChanged]=useState(false)
+  const [isImageUploading,setIsImageUploading]=useState(false)
+  const [isSaving,setIsSaving]=useState(false)
+  const [isDeleting,setIsDeleting]=useState(false)
+  const [isIncorrectPassword,setIsIncorrectPassword]=useState(false)
+  const [hasSamePassword,setHasSamePassword]=useState(true)
+  const [user,setUser]=useState(null)
+  const [userBasicDetails,setUserBasicDetails]=useState({
+    name:"",
+    email:"",
+    contactNo:""
+  })
+  const [userAddress,setUserAddress]=useState({
+    area:"",
+    city:"",
+    country:"",
+    postalCode:"",
+    state:""
+  })
+  const navigate = useNavigate()
 
+  //helper function for this page
+  function successToast(message){
+    toast.success(message, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+      });
+  }
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedImage(URL.createObjectURL(file));
+      setSelectedFile(file)
     }
   };
   const handleDrop = (event) => {
@@ -31,78 +77,182 @@ const Profile = () => {
       setSelectedImage(URL.createObjectURL(file));
     }
   };
-
   const handleDragOver = (event) => {
     event.preventDefault(); // Allows dropping
   };
 
-  const user = {
-    name: 'Debjit Adhikari',
-    email: 'debjit@gmail.com',
-    phone: '+91 9999887777',
-    avatar: '/images/profile.jpg',
-    address: {
-      localArea: 'Howrah, Kolkata',
-      city: 'Kolkata',
-      state: 'West Bengal',
-      zip: '777777',
-      country: 'India'
-    },
-    orders: [
-      {
-        id: 'ORD-123456',
-        date: '2024-03-15',
-        total: 299.97,
-        status: 'Delivered',
-        items: 3
-      },
-      {
-        id: '#ORD-123457',
-        date: '2024-03-10',
-        total: 149.99,
-        status: 'Processing',
-        items: 1
-      }
-    ]
-  };
+  //form and update releated function
+  async function checkIsLoggedIn() {
+    const data = await checkLogin()
+    console.log(data.status)
+    if(data.status==="success")
+      setIsLoggedIn(true)
+    else if(data.status==="failed")
+      navigate("/userAuth")
+  }
+  async function userLogout() {
+    const data = await logout()
+    console.log(data.data.status)
+    if(data.data.status==="success")
+      navigate("/userAuth")
+  }
+  function handleUserLogout(){
+    userLogout()
+  }
 
+  function handleAddressInputChange(e){
+    const {name,value}= e.target
+    setUserAddress((previousAddress)=>({
+      ...previousAddress,
+      [name]:value
+    }))
+    setHasAnythingChanged(true)
+  }
+  function handleDetailsInputChange(e){
+    const {name,value}= e.target
+    setUserBasicDetails((previousDetails)=>({
+      ...previousDetails,
+      [name]:value
+    }))
+    setHasAnythingChanged(true)
+  }
+  async function updateUserDetails(){
+    setIsSaving(true)
+    const formData= new FormData()
+    formData.append("name",userBasicDetails.name)
+    formData.append("email",userBasicDetails.email)
+    formData.append("contactNo",userBasicDetails.contactNo)
+    formData.append("area",userAddress.area)
+    formData.append("city",userAddress.city)
+    formData.append("state",userAddress.state)
+    formData.append("country",userAddress.country)
+    formData.append("postalCode",userAddress.postalCode)
+    const data = await updateMyDetails(formData)
+    console.log(data)
+    fetchUserDetails()
+    successToast('Details updated successfully!')
+    setIsSaving(false)
+    setHasAnythingChanged(false)
+  }
+  function handleSubmitDetails(){
+    updateUserDetails()
+  }
+  async function handlePasswordUpdate(){
+    setIsIncorrectPassword(false)
+    setHasSamePassword(true)
+    setIsSaving(true)
+    const formData = new FormData()
+    formData.append("currentPassword",currentPassword)
+    formData.append("newPassword",newPassword)
+    formData.append("confirmPassword",confirmPassword)
+    console.log("going")
+    const data = await updateMyPassword(formData)
+    console.log(data.data)
+    
+    if(data.status==="failed" && data.message==="Incorrect Password")
+      setIsIncorrectPassword(true)
+    else if(data.status==="failed" && data.message==="Password should be same as confirm password")
+      setHasSamePassword(false)
+    else if(data.data.status==="success"){
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+      setShowPassword(false)
+      successToast("Password Updated Successfully")
+    }
+    
+    setIsSaving(false)
+  }
+  async function handleSubmitPhoto(){
+    const formData = new FormData()
+    formData.append("image",selectedFile)
+    console.log(formData)
+    console.log(selectedFile)
+    setIsUploading(true)
+    const data = await uploadMyPhoto(formData)
+    console.log(data)
+    setIsUploading(false)
+    setShowPhotoModal(false)
+    successToast("Profile photo updated successfully")
+    setSelectedFile(null)
+    setSelectedImage(null)
+    fetchUserDetails()
+  }
+  async function handleDeletePhoto(){
+    if(user.profileImage.public_id.split("/")[2]==="default_profile_image")
+      return
+    setIsDeleting(true)
+    const data = await deleteMyPhoto()
+    if(data.data.status==="success"){
+      setIsDeleting(false)
+      successToast("Profile Photo Deleted")
+      fetchUserDetails()
+
+    }
+
+  }
+  // const user = {
+  //   
+  //   orders: [
+  //     {
+  //       id: 'ORD-123456',
+  //       date: '2024-03-15',
+  //       total: 299.97,
+  //       status: 'Delivered',
+  //       items: 3
+  //     },
+  //     {
+  //       id: '#ORD-123457',
+  //       date: '2024-03-10',
+  //       total: 149.99,
+  //       status: 'Processing',
+  //       items: 1
+  //     }
+  //   ]
+  // };
+
+  async function fetchUserDetails(){
+    try {
+      const userdetails= await getMyDetails()
+      // console.log(userdetails.data)
+      setUser(userdetails.data)
+      console.log(userdetails.data.profileImage.public_id.split("/")[2])
+      setUserAddress({
+        area:userdetails.data.address.area || "",
+        city:userdetails.data.address.city || "",
+        country:userdetails.data.address.country || "",
+        postalCode:userdetails.data.address.postalCode || "",
+        state:userdetails.data.address.state || "",
+
+      })
+      setUserBasicDetails({
+        name: userdetails.data.name || "",
+        email: userdetails.data.email || "",
+        contactNo: userdetails.data.contactNo || ""
+      })
+    } catch (err) {
+      throw new Error(err)
+    }
+  }
+  
+  
+
+  //for fetching user deails
   useEffect(()=>{
     window.scrollTo(0,0)
+    checkIsLoggedIn()
+    fetchUserDetails()
   },[])
 
   return (
     <>
     
     {
-      !isLoggedIn?
-      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
-      <div className="max-w-md w-full flex flex-col gap-6 bg-white p-8 shadow-lg sm:rounded-lg sm:px-10">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">Start Ordering Today!</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Create an account to unlock exclusive deals and faster checkout.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <Link
-            to="/login"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/signup"
-            className="w-full flex justify-center py-3 px-4 border border-blue-600 rounded-lg text-blue-600 bg-white hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Sign Up
-          </Link>
-        </div>
-      </div>
-    </div>:
+    
     <div className="max-w-7xl min-h-[90vh] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <ToastContainer
       
+      />
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar */}
         <div className="w-full md:w-64 flex-shrink-0">
@@ -110,20 +260,14 @@ const Profile = () => {
             <div className="flex flex-col mb-6">
               <div className="relative group mb-4">
                 <img
-                  src={user.avatar}
-                  alt={user.name}
+                  src={user?.profileImage.url}
+                  alt={user?.name}
                   className="h-16 w-16 rounded-full"
-                />
-                <button
-                  onClick={() => setShowPhotoModal(true)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                >
-                  <Camera className="h-6 w-6 text-white" />
-                </button>
+                  />                
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{user.name}</h2>
-                <p className="text-gray-600">{user.email}</p>
+                <h2 className="text-xl font-semibold text-gray-900">{user?.name}</h2>
+                <p className="text-gray-600">{user?.email}</p>
               </div>
             </div>
             
@@ -145,7 +289,7 @@ const Profile = () => {
                   </button>
                 );
               })}
-              <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-red-600 hover:bg-red-50">
+              <button onClick={handleUserLogout} className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-red-600 hover:bg-red-50">
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
               </button>
@@ -166,8 +310,8 @@ const Profile = () => {
                   <h4 className="text-lg font-medium mb-4">Profile Photo</h4>
                   <div className="flex items-start space-x-6">
                     <img
-                      src={user.avatar}
-                      alt={user.name}
+                      src={user?.profileImage.url}
+                      alt={user?.name}
                       className="h-24 w-24 rounded-full"
                     />
                     <div>
@@ -179,8 +323,11 @@ const Profile = () => {
                           <Upload className="h-5 w-5 mr-2" />
                           Change Photo
                         </button>
-                        <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50">
-                          Remove
+                        <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50"
+                        onClick={handleDeletePhoto}>
+                          {
+                            isDeleting?"Removing...":"Remove"
+                        }
                         </button>
                       </div>
                       <p className="mt-2 text-sm text-gray-500">
@@ -190,6 +337,7 @@ const Profile = () => {
                   </div>
                 </div>
 
+              {/* basic details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -197,7 +345,9 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={user.name}
+                      name="name"
+                      onChange={handleDetailsInputChange}
+                      value={userBasicDetails.name}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -207,8 +357,10 @@ const Profile = () => {
                     </label>
                     <input
                       type="email"
-                      value={user.email}
-                      disabled="true"
+                      name="email"
+                      value={userBasicDetails.email}
+                      onChange={handleDetailsInputChange}
+                      disabled={true}
                       className="w-full px-4 py-2 border bg-slate-200 text-slate-500 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -217,13 +369,17 @@ const Profile = () => {
                       Phone
                     </label>
                     <input
-                      type="tel"
-                      value={user.phone}
+                      type="number"
+                      name="contactNo"
+                      value={userBasicDetails.contactNo}
+                      onChange={handleDetailsInputChange}
+                      
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
 
+              {/* address */}
                 <h3 className="text-xl font-semibold mt-8 mb-6">Address</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
@@ -232,7 +388,10 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={user.address.localArea}
+                      name="area"
+                      value={userAddress.area}
+                      onChange={handleAddressInputChange}
+                      
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -242,7 +401,10 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={user.address.city}
+                      name="city"
+                      value={userAddress.city}
+                      onChange={handleAddressInputChange}
+                      
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -252,17 +414,23 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={user.address.state}
+                      name="state"
+                      value={userAddress.state}
+                      onChange={handleAddressInputChange}
+                      
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ZIP Code
+                      PIN Code
                     </label>
                     <input
                       type="text"
-                      value={user.address.zip}
+                      name="postalCode"
+                      value={userAddress.postalCode}
+                      onChange={handleAddressInputChange}
+                      
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -272,15 +440,22 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={user.address.country}
+                      name="country"
+                      value={userAddress.country}
+                      onChange={handleAddressInputChange}
+                      
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
 
                 <div className="mt-8">
-                  <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                    Save Changes
+                  <button className={`${hasAnythingChanged?"bg-blue-600 hover:bg-blue-700 text-white ":"bg-slate-400 text-slate-200"} px-6 py-2 rounded-lg `}
+                  disabled={isSaving||!hasAnythingChanged}
+                  onClick={handleSubmitDetails}>
+                    {
+                      isSaving? "Saving...":"Save Changes"
+                    }
                   </button>
                 </div>
               </div>
@@ -297,6 +472,7 @@ const Profile = () => {
                     <input
                       type={showPassword ? "text" : "password"}
                       value={state}
+                      required={true}
                       onChange={(e) => setState(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -309,21 +485,28 @@ const Profile = () => {
                     </button>
                   </div>
                 ))}
-              </div>
+              {(!currentPassword || !newPassword || !confirmPassword) && <p className='text-red-500'>All fields are required</p>}
+                {isIncorrectPassword&& <p className='text-red-500'>Wrong Password</p>}
+                {!hasSamePassword&& <p className='text-red-500'>New and Confirm Password should be same</p>}
+             </div>
               <div className="mt-6">
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full">
-                  Update Password
+                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full"
+                onClick={handlePasswordUpdate}
+                disabled={(!currentPassword || !newPassword || !confirmPassword)||isSaving}>
+                  {
+                    isSaving?"Updating...":"Update Password"
+                  }
                 </button>
               </div>
             </div>
               </>
             )}
 
-            {activeTab === 'Orders' && (
+            {/* {activeTab === 'Orders' && (
               <div>
                 <h3 className="text-xl font-semibold mb-6">Order History</h3>
                 <div className="space-y-4">
-                  {user.orders.map((order) => (
+                  {user?.orders.map((order) => (
                     <div
                       key={order.id}
                       className="border border-gray-200 rounded-lg p-4 hover:border-gray-300"
@@ -354,7 +537,7 @@ const Profile = () => {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
@@ -405,8 +588,12 @@ const Profile = () => {
             >
               Cancel
             </button>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
-              Upload Photo
+            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+             disabled={isUploading}
+             onClick={handleSubmitPhoto}>
+              {
+                isUploading?"Uploading...":"Upload Photo"
+              } 
             </button>
           </div>
         </div>

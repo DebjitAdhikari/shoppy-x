@@ -74,6 +74,7 @@ const searchSuggestions = [
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [showCart, setShowCart] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,10 +90,14 @@ const Navbar = () => {
   async function checkIsLoggedIn() {
     const data = await checkLogin()
     console.log("for nav bar cart",data)
-    if(data.status==="failed" && data.message==="Not Logged in")
+    if(data.status==="failed" && data.message==="Not Logged in"){
       setIsLoggedIn(false)
-    else if(data.data.status==="success")
+      setShowCart(false)
+    }
+    else if(data.data.status==="success"){
       setIsLoggedIn(true)
+
+    }
   }
   useEffect(()=>{
     checkIsLoggedIn()
@@ -273,7 +278,13 @@ const Navbar = () => {
 
               <div
                 className="relative"
-                
+                onMouseEnter={() => {
+                  isLoggedIn && setShowCart(true)
+                  console.log("entering",isLoggedIn)
+                }}
+                onMouseLeave={() => {
+                  isLoggedIn && setShowCart(false)
+                }}
               >
                 <button
                   onClick={() => setIsCartOpen(true)}
@@ -285,7 +296,40 @@ const Navbar = () => {
                   </span>
                 </button>
 
-                
+                {/* Cart Preview Dropdown */}
+                {showCart && (
+                  
+                  <div className="absolute top-full right-0 w-80 mt-1 bg-white rounded-lg shadow-lg py-4 z-50">
+                   {console.log("show",showCart)} <div className="px-4 py-2 border-b border-gray-100">
+                      <h3 className="font-semibold text-gray-900">Shopping Cart ({totalItems})</h3>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {cartItems.slice(0, 3).map((item) => (
+                        <div key={item.id} className="flex items-center px-4 py-3 hover:bg-gray-50">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-12 h-12 rounded object-cover"
+                          />
+                          <div className="ml-3 flex-1">
+                            <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {item.quantity} × ₹{item.price}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-b-lg">
+                      <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+                      >
+                        View Cart (₹{subtotal.toFixed(2)})
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

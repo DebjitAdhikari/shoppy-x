@@ -1,8 +1,34 @@
+import {useState, useEffect} from "react"
 import { Trash2, X } from "lucide-react";
+import checkLogin from "../services/users/checkLogin.js";
+import { useNavigate } from "react-router-dom";
 
 function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
+
+  const [isLoggedIn,setIsLoggedIn]=useState(false)
+  const navigate = useNavigate()
+  async function hasLoggedIn() {
+    const data = await checkLogin()
+    console.log("logged cart",data)
+    if(data.status==="failed" && data.message==="Not Logged in"){
+      setIsCartOpen(false)
+      setIsLoggedIn(false)
+      navigate("/userAuth")
+    }else if(data.data.status==="success"){
+      setIsCartOpen(true)
+      setIsLoggedIn(true)
+    }
+
+
+  }
+  useEffect(()=>{
+    hasLoggedIn()
+  },[])
     
     return (
+      <>
+      {
+        isLoggedIn &&
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsCartOpen(false)} />
           <div className="absolute inset-y-0 right-0 max-w-full flex">
@@ -77,6 +103,9 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
             </div>
           </div>
         </div>
+        
+      }
+      </>
     )
 }
 

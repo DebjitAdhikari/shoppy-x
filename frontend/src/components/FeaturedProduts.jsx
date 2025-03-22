@@ -9,6 +9,7 @@ function FeaturedProduts() {
     const [isProductLoading,setIsProductLoading]=useState(true)
     const navigate =useNavigate()
     async function fetchAllProducts(){
+      
       const {data} = await getAllProducts()
       console.log(data)
       setProducts(data)

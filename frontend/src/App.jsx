@@ -14,6 +14,15 @@ import OffersPage from './pages/OffersPage';
 import OrderDetails from './pages/OrderDetails';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import UserAuth from './pages/UserAuth';
+import AdminLayout from './pages/AdminPanel/layout/AdminLayout';
+import HomeTab from './pages/AdminPanel/tabs/HomeTab';
+import CategoriesTab from './pages/AdminPanel/tabs/CategoriesTab';
+import ProductsTab from './pages/AdminPanel/tabs/ProductsTab';
+import OffersTab from './pages/AdminPanel/tabs/OffersTab';
+import OrdersTab from './pages/AdminPanel/tabs/OrdersTab';
+import ContactTab from './pages/AdminPanel/tabs/ContactTab';
+import AdminLogin from './pages/AdminPanel/tabs/AdminLogin';
 
 
 // const router=createBrowserRouter([
@@ -67,6 +76,10 @@ const router = createBrowserRouter([
         element:<HomePage></HomePage>
       },
       {
+        path:"/userAuth",
+        element:<UserAuth></UserAuth>
+      },
+      {
         path:"/login",
         element:<Login></Login>
       },
@@ -105,10 +118,26 @@ const router = createBrowserRouter([
       {
         path:"/order/:orderId",
         element:<OrderDetails></OrderDetails>
-      }
+      },
+      //admin panel comes from here 
+      {
+        path:"/admin",
+        element:<AdminLayout></AdminLayout>,
+        children:[
+          { index: true, element:<HomeTab></HomeTab>},
+          { path: "login", element: <AdminLogin></AdminLogin>},
+          { path: "categories", element: <CategoriesTab></CategoriesTab>},
+          { path: "products", element: <ProductsTab></ProductsTab>},
+          { path: "offers", element: <OffersTab></OffersTab>},
+          { path: "orders", element: <OrdersTab></OrdersTab>},
+          { path: "contact", element: <ContactTab></ContactTab>}
+        ]
+      },
+      
     ]
   }
-])
+]
+)
 function App() {
   return (
     <RouterProvider router={router}>

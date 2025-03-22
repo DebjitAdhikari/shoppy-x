@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:[true,"A user should have a name."]
     },
+    role:{
+        type:String,
+        enum:["user","admin"],
+        default:"user"
+    },
     password:{
         type:String,
         select:false,
@@ -34,26 +39,42 @@ const userSchema = new mongoose.Schema({
     address:{
         area:{
             type:String,
-            required:true
+            required:function(){
+                return this.role==="user"
+            }
         },
         city:{
             type:String,
-            required:true
+            required:function(){
+                return this.role==="user"
+            }
         },
         state:{
             type:String,
-            required:true
+            required:function(){
+                return this.role==="user"
+            }
         },
         country:{
             type:String,
-            required:true
+            required:function(){
+                return this.role==="user"
+            }
         },
         postalCode:{
             type:Number,
-            required:true
+            required:function(){
+                return this.role==="user"
+            }
         }
     },
-})
+    cart:[
+        {
+            productId:{type: mongoose.Schema.Types.ObjectId, ref:"Product"},
+            quantity:{type:Number,min:1,default:1}
+        }
+    ]
+},{timestamps:true})
 
 userSchema.pre("save",async function (next){
     if(!this.isModified("password")) return next()

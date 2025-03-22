@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
+import checkLogin from '../services/users/checkLogin';
+import signUp from '../services/users/signUp.js';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -18,10 +20,18 @@ const Signup = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isEmailDuplicate,setIsEmailDuplicate]=useState(false)
+  const [doesPasswordMatch,setDoesPasswordMatch] = useState(true)
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-
+  const navigate = useNavigate()
+  async function checkIsLoggedIn() {
+      const data = await checkLogin()
+      if(data.data.status==="success")
+        navigate("/profile")
+    }
   useEffect(() => {
     window.scrollTo(0, 0);
+    checkIsLoggedIn()
   }, []);
 
   const handleChange = (e) => {
@@ -31,9 +41,37 @@ const Signup = () => {
       [name]: value
     }));
   };
+  async function sendFormSignUp(){
+    
+    setIsEmailDuplicate(false)
+    const signUpFormData = new FormData()
+    signUpFormData.append("name",formData.name)
+    signUpFormData.append("email",formData.email)
+    signUpFormData.append("contactNo",formData.phone)
+    signUpFormData.append("password",formData.password)
+    signUpFormData.append("confirmPassword",formData.confirmPassword)
+    signUpFormData.append("area",formData.area)
+    signUpFormData.append("city",formData.city)
+    signUpFormData.append("state",formData.state)
+    signUpFormData.append("country",formData.country)
+    signUpFormData.append("postalCode",formData.pin)
+    const data = await signUp(signUpFormData)
+    console.log("got it",data.data.status)
+    
+    if(data.status==="error")
+      setIsEmailDuplicate(true)
+    else if(data.data.status==="success")
+      navigate("/profile")
 
+  }
   const handleSubmit = (e) => {
     e.preventDefault();
+    if(formData.password!==formData.confirmPassword){
+      setDoesPasswordMatch(false)
+      return
+    }
+    setDoesPasswordMatch(true)
+    sendFormSignUp()
     // Handle signup logic here
     console.log(formData);
   };
@@ -42,7 +80,7 @@ const Signup = () => {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
       <div className="max-w-2xl w-full space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
+          <h2 className="mt-6 text-3xl font-roboto font-extrabold text-gray-900">Create your account</h2>
           <p className="mt-2 text-sm text-gray-600">
             Join us today and enjoy a seamless shopping experience
           </p>
@@ -92,8 +130,10 @@ const Signup = () => {
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Your email address"
                   />
+                </div>{
+                  isEmailDuplicate &&<p className='text-red-600'>Account with this mail already exists</p>
+                }
                 </div>
-              </div>
 
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
@@ -182,7 +222,11 @@ const Signup = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+                {
+                  !doesPasswordMatch && <p className='text-red-600 ml-1 '>Passwords do not match</p>
+              
+                }
+                </div>
             </div>
 
             {/* Address Information */}
