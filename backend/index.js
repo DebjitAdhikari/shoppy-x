@@ -14,7 +14,7 @@ dotenv.config()
 
 const app =express()
 app.use(cors({
-    origin:"http://localhost:5173",
+    origin:["http://localhost:5173","https://shoppy-x.vercel.app"],
     method:["GET", "POST", "PUT","PATCH", "DELETE"],
     credentials:true
 }))
