@@ -84,7 +84,6 @@ const Profile = () => {
   //form and update releated function
   async function checkIsLoggedIn() {
     const data = await checkLogin()
-    console.log(data.status)
     if(data.status==="success")
       setIsLoggedIn(true)
     else if(data.status==="failed")
@@ -145,9 +144,8 @@ const Profile = () => {
     formData.append("currentPassword",currentPassword)
     formData.append("newPassword",newPassword)
     formData.append("confirmPassword",confirmPassword)
-    console.log("going")
     const data = await updateMyPassword(formData)
-    console.log(data.data)
+    // console.log(data.data)
     
     if(data.status==="failed" && data.message==="Incorrect Password")
       setIsIncorrectPassword(true)
@@ -166,11 +164,9 @@ const Profile = () => {
   async function handleSubmitPhoto(){
     const formData = new FormData()
     formData.append("image",selectedFile)
-    console.log(formData)
-    console.log(selectedFile)
     setIsUploading(true)
     const data = await uploadMyPhoto(formData)
-    console.log(data)
+    // console.log(data)
     setIsUploading(false)
     setShowPhotoModal(false)
     successToast("Profile photo updated successfully")
@@ -216,7 +212,7 @@ const Profile = () => {
       const userdetails= await getMyDetails()
       // console.log(userdetails.data)
       setUser(userdetails.data)
-      console.log(userdetails.data.profileImage.public_id.split("/")[2])
+      // console.log(userdetails.data.profileImage.public_id.split("/")[2])
       setUserAddress({
         area:userdetails.data.address.area || "",
         city:userdetails.data.address.city || "",

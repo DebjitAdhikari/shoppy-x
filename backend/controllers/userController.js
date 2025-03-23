@@ -36,11 +36,18 @@ export async function createUser(req, res, next) {
         message:"User couldn't be created"
       })
     const token = getToken(user._id)
+    // res.cookie("jwt",token,{
+    //   httpOnly:true,
+    //   secure:true,
+    //   sameSite:"Strict",
+    //   maxAge: 10 * 24 * 60 * 60 * 1000
+    // })
     res.cookie("jwt",token,{
       httpOnly:true,
       secure:true,
-      sameSite:"Strict",
-      maxAge: 10 * 24 * 60 * 60 * 1000
+      path:"/",
+      sameSite:"Lax",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     })
     res.status(200).json({
       status:"success",
@@ -72,13 +79,20 @@ export async function signIn(req, res, next) {
         message:"Invalid Password"
       })
     const token = getToken(user._id)
-    res.cookie("jwt", token, {
+    /*res.cookie("jwt", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Ensure secure cookies in production
       // secure:true, // Ensure secure cookies in production
       sameSite: "strict", // Prevent CSRF attacks
       maxAge: 10 * 24 * 60 * 60 * 1000,
-    });
+    });*/
+    res.cookie("jwt",token,{
+      httpOnly:true,
+      secure:true,
+      path:"/",
+      sameSite:"Lax",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    })
     
     user.password=undefined // dont wanna show the password as response
     res.status(200).json({
