@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Menu } from 'lucide-react';
-import logOutAdmin from '../../../services/admin/logoutAdmin.js';
+import logOutAdmin from '../../../services/admin/logOutAdmin.js';
 import AdminLogin from '../tabs/AdminLogin.jsx';
 import checkAdminLogin from '../../../services/admin/checkAdminLogin.js';
 
