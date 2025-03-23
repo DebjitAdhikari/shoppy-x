@@ -61,13 +61,13 @@ export async function adminSignIn(req,res,next){
     //   sameSite:"strict",
     //   maxAge: 10 * 24 * 60 * 60 * 1000
     // })
-    res.cookie("adminjwt",token,{
-      httpOnly:true,
-      secure:true,
-      path:"/",
-      sameSite:"Lax",
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    })
+    res.cookie("adminjwt", token, {
+      httpOnly: true,
+      secure: true,
+      path: "/",
+      sameSite: "None", // Changed from "Lax"
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
     
     admin.password = undefined
     res.status(200).json({

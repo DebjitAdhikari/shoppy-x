@@ -42,13 +42,13 @@ export async function createUser(req, res, next) {
     //   sameSite:"Strict",
     //   maxAge: 10 * 24 * 60 * 60 * 1000
     // })
-    res.cookie("jwt",token,{
-      httpOnly:true,
-      secure:true,
-      path:"/",
-      sameSite:"Lax",
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    })
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: true,
+      path: "/",
+      sameSite: "None", // Changed from "Lax"
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
     res.status(200).json({
       status:"success",
       token,
@@ -86,13 +86,13 @@ export async function signIn(req, res, next) {
       sameSite: "strict", // Prevent CSRF attacks
       maxAge: 10 * 24 * 60 * 60 * 1000,
     });*/
-    res.cookie("jwt",token,{
-      httpOnly:true,
-      secure:true,
-      path:"/",
-      sameSite:"Lax",
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    })
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: true,
+      path: "/",
+      sameSite: "None", // Changed from "Lax"
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
     
     user.password=undefined // dont wanna show the password as response
     res.status(200).json({
