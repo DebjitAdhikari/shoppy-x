@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export default async function getMyDetails(){
+export default async function getAllBanners(){
     try {
-      const {data}= await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/getMe`,
+      const {data}= await axios.get(`${import.meta.env.VITE_API_BASE_URL}/banners/getAll`,
         { withCredentials: true }
       )
       return data

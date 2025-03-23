@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export default async function getMyDetails(){
+export default async function deleteBannerService(id){
     try {
-      const {data}= await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/getMe`,
+      const {data}= await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/banners/${id}`,
         { withCredentials: true }
       )
       return data
