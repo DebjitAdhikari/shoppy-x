@@ -11,7 +11,7 @@ router.route("/signUp")
 router.route("/signIn")
     .post(userController.signIn)
 router.route("/logout")
-    .get(userController.logOut)
+    .post(userController.logOut)
 router.route("/getAll")
     .get(userController.protectRoute,userController.getAllUsers)
 router.route("/getMe")// it needs to come first 

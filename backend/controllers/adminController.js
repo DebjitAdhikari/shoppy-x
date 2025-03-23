@@ -80,10 +80,17 @@ export async function adminSignIn(req,res,next){
 }
 export async function adminLogOut(req,res,next){
     try {
-      res.cookie("adminjwt","",{
-        httpOnly:true,
-        expires:new Date(0)
-      })
+      // res.cookie("adminjwt","",{
+      //   httpOnly:true,
+      //   expires:new Date(0)
+      // })
+      res.cookie("adminjwt", "", {
+        httpOnly: true,
+        secure: true, // Add this
+        sameSite: "None", // Add this
+        path: "/", // Add this
+        expires: new Date(0), // Immediate expiration
+      });
       res.status(200).json({
         status:"success",
         message:"Logged out successfully"

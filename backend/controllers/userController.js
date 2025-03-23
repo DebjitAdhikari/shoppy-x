@@ -108,11 +108,18 @@ export async function signIn(req, res, next) {
 
 export async function logOut(req,res,next){
   try {
-    res.cookie("jwt","",{
-        httpOnly:true,
-        expires:new Date(0)
-      }
-    )
+    // res.cookie("jwt","",{
+    //     httpOnly:true,
+    //     expires:new Date(0)
+    //   }
+    // )
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      secure: true, // Add this
+      sameSite: "None", // Add this
+      path: "/", // Add this
+      expires: new Date(0), // Immediate expiration
+    });
     res.status(200).json({
       status:"success",
       message:"Logged out successfully"
