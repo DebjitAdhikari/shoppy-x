@@ -77,9 +77,9 @@ export async function updateBanner(req, res, next) {
         let imageResult = banner.image
         //if image has changed then delete the previous image 
         //and upload the new image
-        if (hasImageChanged) {
+        if (hasImageChanged=="true") {
             const image = req.file
-            console.log("new image needs to be uploaded")
+            // console.log("new image needs to be uploaded")
             //delete the existing image
             await cloudinary.uploader.destroy(banner.image.public_id)
             //upload the new image

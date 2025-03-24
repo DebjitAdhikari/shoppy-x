@@ -2,9 +2,11 @@ import { AlertTriangle, Edit, Plus, Trash, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import getAllBanners from "../../../../services/homebanners/getAllBanners.js";
 import createNewBanner from "../../../../services/homebanners/createNewBanner.js";
+// import updateBanner from "../../../../services/homebanners/updateBanner.js";
 import Modal from "../../common/Modal.jsx";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import deleteBannerService from "../../../../services/homebanners/deleteBannerService.js";
+import updateBannerService from "../../../../services/homebanners/updateBannerService.js";
 
 function HomeAdminBanners() {
   //creation state
@@ -15,43 +17,53 @@ function HomeAdminBanners() {
   const [bannerImageFile, setBannerImageFile] = useState(null);
   //
   const [isAdding, setIsAdding] = useState(false);
-  const [isDeleting,setIsDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasImageChanged,setHasImageChanged]=useState(false)
   // Modal state
-  const [showBannerModal, setShowBannerModal] = useState(false);
+  const [showAddBannerModal, setShowAddBannerModal] = useState(false);
+  const [showEditBannerModal, setShowEditBannerModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Editing state
   const [editingBanner, setEditingBanner] = useState(null);
+  const [editBannerForm, setEditBannerForm] = useState({
+    heading: "",
+    description: "",
+  });
   const [bannerIdToDelete, setBannerIdToDelete] = useState(null);
 
   // File upload references
   const bannerImageRef = useRef(null);
+  const editBannerImageRef = useRef(null);
 
   // State for managing data
   const [allBanners, setAllBanners] = useState([]);
 
   // Image preview handling
   const [bannerImagePreview, setBannerImagePreview] = useState("");
+  const [editBannerImagePreview, setEditBannerImagePreview] = useState("");
 
-
-  function successToast(message){
+  function successToast(message) {
     toast.success(message, {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-        });
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+    });
   }
+  
   // File upload handlers
   const handleImageChange = (e, setPreview) => {
     const file = e.target.files[0];
     if (file) {
       setBannerImageFile(file);
+      setHasImageChanged(true)
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
@@ -60,18 +72,36 @@ function HomeAdminBanners() {
     }
   };
 
-  // Reset form when opening modal for new item
-  const openBannerModal = (banner = null) => {
-    setEditingBanner(banner);
+  // Open add banner modal
+  const openAddBannerModal = () => {
+    setBanner({
+      heading: "",
+      description: "",
+    });
     setBannerImagePreview("");
-    setShowBannerModal(true);
+    setBannerImageFile(null);
+    setShowAddBannerModal(true);
   };
+
+  // Open edit banner modal
+  const openEditBannerModal = (banner) => {
+    setEditingBanner(banner);
+    setEditBannerForm({
+      heading: banner.heading,
+      description: banner.description,
+    });
+    setEditBannerImagePreview("");
+    setBannerImageFile(null);
+    setShowEditBannerModal(true);
+  };
+
   //--------fetching functions are here ---------------------
   //get All the banners
   async function fetchAllBanners() {
     const { data } = await getAllBanners();
     setAllBanners(data);
   }
+  
   //--------handling onchange functions are here -----------
   function handleNewBannerInputChange(e) {
     const { name, value } = e.target;
@@ -80,9 +110,17 @@ function HomeAdminBanners() {
       [name]: value,
     }));
   }
+
+  function handleEditBannerInputChange(e) {
+    const { name, value } = e.target;
+    setEditBannerForm((previousState) => ({
+      ...previousState,
+      [name]: value,
+    }));
+  }
+  
   //--------handling functions are here --------------------
- 
-  async function handleBannerSubmit(e) {
+  async function handleAddBannerSubmit(e) {
     e.preventDefault();
     setIsAdding(true);
     const formData = new FormData();
@@ -90,36 +128,66 @@ function HomeAdminBanners() {
     formData.append("description", banner.description);
     formData.append("image", bannerImageFile);
     try {
-      const { data } = await createNewBanner(formData);
-    //   console.log(data);
+      await createNewBanner(formData);
       setIsAdding(false);
-      setShowBannerModal(false);
-      successToast("New Banner added!")
+      setShowAddBannerModal(false);
+      successToast("New Banner added!");
+      setHasImageChanged(false)
       fetchAllBanners();
     } catch (err) {
       console.log(err);
+      setIsAdding(false);
+    }
+  }
+
+  async function handleEditBannerSubmit(e) {
+    e.preventDefault();
+    setIsEditing(true);
+    const formData = new FormData();
+    formData.append("heading", editBannerForm.heading);
+    formData.append("description", editBannerForm.description);
+    formData.append("hasImageChanged",hasImageChanged)
+    if (bannerImageFile && hasImageChanged) {
+      formData.append("image", bannerImageFile);
+    }
+    try {
+      // await updateBanner(editingBanner._id, formData);
+      // printing if all the fields are okay....................
+      // console.log(editingBanner,hasImageChanged,bannerImageFile)
+      const data = await updateBannerService(editingBanner._id,formData)
+      
+      setIsEditing(false);
+      setShowEditBannerModal(false);
+      successToast("Banner updated successfully!");
+      setHasImageChanged(false)
+      fetchAllBanners();
+    } catch (err) {
+      console.log(err);
+      setIsEditing(false);
     }
   }
 
   //open the modal for delete
-  const openDeleteModal = ( id) => {
-    setBannerIdToDelete( id );//banner with this id will be deleted
-    setShowDeleteModal(true);//open 
+  const openDeleteModal = (id) => {
+    setBannerIdToDelete(id); //banner with this id will be deleted
+    setShowDeleteModal(true); //open 
   };
+  
   //confirm the delete
-  async function handleBannerDelete(){
-    setIsDeleting(true)
-    const data = await deleteBannerService(bannerIdToDelete)
-    // console.log(data)
-    setIsDeleting(false)
-    setShowDeleteModal(false)
-    fetchAllBanners()
-    successToast("Banner deleted successfully")
+  async function handleBannerDelete() {
+    setIsDeleting(true);
+    await deleteBannerService(bannerIdToDelete);
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+    fetchAllBanners();
+    successToast("Banner deleted successfully");
   }
+  
   useEffect(() => {
     //get and set the home banners
     fetchAllBanners();
   }, []);
+  
   return (
     <>
       <section className="bg-white rounded-2xl shadow-md p-3 sm:p-6">
@@ -127,7 +195,7 @@ function HomeAdminBanners() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
           <h2 className="text-2xl font-bold text-gray-800">Hero Banners</h2>
           <button
-            onClick={() => openBannerModal()}
+            onClick={openAddBannerModal}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -157,14 +225,14 @@ function HomeAdminBanners() {
                 </p>
                 <div className="flex gap-3 mt-4 justify-end">
                   <button
-                    onClick={() => openBannerModal(banner)}
+                    onClick={() => openEditBannerModal(banner)}
                     className="p-2 hover:bg-indigo-100 rounded-full transition-colors duration-200 text-indigo-600"
                     aria-label="Edit banner"
                   >
                     <Edit className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => openDeleteModal( banner._id)}
+                    onClick={() => openDeleteModal(banner._id)}
                     className="p-2 hover:bg-red-100 rounded-full transition-colors duration-200 text-red-600"
                     aria-label="Delete banner"
                   >
@@ -176,19 +244,19 @@ function HomeAdminBanners() {
           ))}
         </div>
       </section>
-      {/* Banner Modal */}
+      
+      {/* Add Banner Modal */}
       <Modal
-        isOpen={showBannerModal}
+        isOpen={showAddBannerModal}
         onClose={() => {
-          setShowBannerModal(false);
-          setEditingBanner(null);
+          setShowAddBannerModal(false);
           setBannerImagePreview("");
         }}
-        title={editingBanner ? "Edit Banner" : "Add Banner"}
+        title="Add Banner"
       >
         <form
           className="space-y-4 h-[70vh] overflow-y-auto"
-          onSubmit={handleBannerSubmit}
+          onSubmit={handleAddBannerSubmit}
         >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -200,7 +268,7 @@ function HomeAdminBanners() {
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               placeholder="Enter banner heading"
               onChange={handleNewBannerInputChange}
-              defaultValue={editingBanner?.heading}
+              value={banner.heading}
               required
             />
           </div>
@@ -214,7 +282,7 @@ function HomeAdminBanners() {
               rows="3"
               placeholder="Enter banner description"
               onChange={handleNewBannerInputChange}
-              defaultValue={editingBanner?.description}
+              value={banner.description}
               required
             ></textarea>
           </div>
@@ -223,10 +291,10 @@ function HomeAdminBanners() {
               Banner Image
             </label>
             <div className="flex flex-col space-y-3">
-              {(bannerImagePreview || editingBanner?.image.url) && (
+              {bannerImagePreview && (
                 <div className="relative h-40 bg-gray-100 rounded-lg overflow-hidden">
                   <img
-                    src={bannerImagePreview || editingBanner?.image.url}
+                    src={bannerImagePreview}
                     alt="Banner preview"
                     className="w-full h-full object-cover"
                   />
@@ -241,18 +309,103 @@ function HomeAdminBanners() {
                   accept="image/*"
                   className="hidden"
                   onChange={(e) => handleImageChange(e, setBannerImagePreview)}
+                  required
                 />
               </label>
             </div>
           </div>
           <button
             type="submit"
+            disabled={isAdding}
             className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
           >
-            {editingBanner ? "Update Banner" : isAdding?"Adding...":"Add Banner"}
+            {isAdding ? "Adding..." : "Add Banner"}
           </button>
         </form>
       </Modal>
+      
+      {/* Edit Banner Modal */}
+      <Modal
+        isOpen={showEditBannerModal}
+        onClose={() => {
+          setShowEditBannerModal(false);
+          setEditingBanner(null);
+          setEditBannerImagePreview("");
+        }}
+        title="Edit Banner"
+      >
+        <form
+          className="space-y-4 h-[70vh] overflow-y-auto"
+          onSubmit={handleEditBannerSubmit}
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Heading
+            </label>
+            <input
+              type="text"
+              name="heading"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              placeholder="Enter banner heading"
+              onChange={handleEditBannerInputChange}
+              value={editBannerForm.heading}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              name="description"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              rows="3"
+              placeholder="Enter banner description"
+              onChange={handleEditBannerInputChange}
+              value={editBannerForm.description}
+              required
+            ></textarea>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Banner Image
+            </label>
+            <div className="flex flex-col space-y-3">
+              {(editBannerImagePreview || (editingBanner && editingBanner.image.url)) && (
+                <div className="relative h-40 bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={editBannerImagePreview || (editingBanner ? editingBanner.image.url : '')}
+                    alt="Banner preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer group">
+                <Upload className="w-5 h-5 mr-2 text-gray-500 group-hover:text-indigo-500 transition-colors" />
+                <span>Change Image</span>
+                <input
+                  ref={editBannerImageRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageChange(e, setEditBannerImagePreview)}
+                />
+              </label>
+              <p className="text-xs text-gray-500">
+                Only upload a new image if you want to change the current one.
+              </p>
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isEditing}
+            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            {isEditing ? "Updating..." : "Update Banner"}
+          </button>
+        </form>
+      </Modal>
+      
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={showDeleteModal}
@@ -281,10 +434,7 @@ function HomeAdminBanners() {
               onClick={handleBannerDelete}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
             >
-            {
-                isDeleting?"Deleting...":"Delete"
-            }
-              
+              {isDeleting ? "Deleting..." : "Delete"}
             </button>
           </div>
         </div>
