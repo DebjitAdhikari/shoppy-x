@@ -12,6 +12,10 @@ const productSchema = new mongoose.Schema({
     availableSize:String, 
     features:String,
     category:String,
+    featuredProduct:{
+        type:Boolean,
+        default:false
+    },
     images:[{
         url:String,
         public_id:String

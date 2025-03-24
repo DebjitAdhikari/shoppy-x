@@ -1,8 +1,8 @@
 import { ArrowRight, Star } from "lucide-react";
 import { useEffect,useState } from "react";
 import { useNavigate } from "react-router-dom"
-import getAllProducts from "../services/products/getAllProducts.js";
 import Loader from "./Loader.jsx";
+import getAllFeaturedProductsService from "../services/products/getAllFeaturedProductsService.js";
 
 function FeaturedProduts() {
     const [products,setProducts]=useState([])
@@ -10,7 +10,7 @@ function FeaturedProduts() {
     const navigate =useNavigate()
     async function fetchAllProducts(){
       
-      const {data} = await getAllProducts()
+      const {data} = await getAllFeaturedProductsService()
       console.log(data)
       setProducts(data)
       setIsProductLoading(false)

@@ -8,7 +8,17 @@ export async function getAllProducts(req,res,next){
         data:products
       })
     } catch (err) {
-      
+      next(err)       
+    }
+}
+export async function getAllFeaturedProducts(req,res,next){
+    try {
+      const products = await Product.find({featuredProduct:true})
+      res.status(200).json({
+        status:"success",
+        data:products
+      })
+    } catch (err) {
       next(err)       
     }
 }
@@ -28,7 +38,7 @@ export async function createProduct(req,res,next){
         })
       const imageUploadPromises = req.files.map((file)=>{
         return new Promise((resolve,reject)=>{
-          const uploadstream = cloudinary.uploader.upload_stream({folder:"shoppyX-products"},
+          const uploadstream = cloudinary.uploader.upload_stream({folder:"ShoppyX/Products/"},
             (error,results)=>{
               if(error)
                 return reject(new Error("Something went wrong while uploading"))
@@ -40,6 +50,8 @@ export async function createProduct(req,res,next){
       })
       const imageUrls = await Promise.all(imageUploadPromises)
       // console.log(imageUrls)
+      if(req.body.featuredProduct)
+        req.body.featuredProduct=true
       const products = await Product.create({...req.body,images:imageUrls})
       res.status(200).json({
         status:"success",
@@ -119,3 +131,17 @@ export async function deleteAllProduct(req,res,next){
       next(err)
     }
 }
+
+//i changed the model so some fields werenot there so i updated the exiting product using this code
+// export async function updateExisting(req,res,next) {
+//   try {
+//     const data = await Product.updateMany({ featuredProduct: { $exists: false } }, { $set: { featuredProduct: false } });
+//     console.log("All existing products updated successfully!");
+//     res.status(200).json({
+//       status:"success",
+//       data
+//     })
+// } catch (error) {
+//     console.error("Error updating products:", error);
+// }
+// }
