@@ -151,7 +151,6 @@ function HomeAdminBanners() {
       formData.append("image", bannerImageFile);
     }
     try {
-      // await updateBanner(editingBanner._id, formData);
       // printing if all the fields are okay....................
       // console.log(editingBanner,hasImageChanged,bannerImageFile)
       const data = await updateBannerService(editingBanner._id,formData)

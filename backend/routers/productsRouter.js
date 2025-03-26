@@ -16,7 +16,7 @@ router.route("/deleteAll")
 //     .patch(productsController.updateExisting)
 router.route("/:id")
     .get(productsController.getProduct)
-    .patch(productsController.updateProduct)
+    .patch(upload.array("images",5),productsController.updateProduct)
     .delete(productsController.deleteProduct)
 
 export default router

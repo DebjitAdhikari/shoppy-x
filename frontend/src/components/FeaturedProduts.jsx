@@ -11,7 +11,7 @@ function FeaturedProduts() {
     async function fetchAllProducts(){
       
       const {data} = await getAllFeaturedProductsService()
-      console.log(data)
+      // console.log(data)
       setProducts(data)
       setIsProductLoading(false)
     }

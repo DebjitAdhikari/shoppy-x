@@ -100,20 +100,68 @@ export async function deleteProduct(req,res,next){
 }
 export async function updateProduct(req,res,next){
     try {
-      
-      const product = await Product.findByIdAndUpdate(req.params.id,req.body,{
-        new:true,
-        runValidators:true
-      })
-      if(!product) 
-        return res.status(404).json({
+      console.log("form data received",req.body)
+      const product = await Product.findById(req.params.id)
+      if(!product){
+        return res.status(400).json({
           status:"failed",
-          message:"Product with that id could not be found!"
-        }) 
+          message:"product not found"
+        })
+      }
+      //1)at first we will delete those image that dont need anymore
+      //2)upload the new image and merge with the existing image of products
+      const {name,availableSize,category,imageUrls,description,discount,featuredProduct,features,price} = req.body
+      let allProductImages=product.images
+      const imagesToBeDeleted= allProductImages.filter(img=>!imageUrls.includes(img.url))
+      const imagesToBeStayed = allProductImages.filter(img=>imageUrls.includes(img.url))
+      const imagesToBeUploaded = req.files
+      // console.log("all images",allProductImages)
+      // console.log("stayable images",imagesToBeStayed)
+      // console.log("deleteable images",imagesToBeDeleted)
+      // console.log("form files received",imagesToBeUploaded)
+      //delete the images
+      if(imagesToBeDeleted.length>0){
+        const deleteImagesPromise = imagesToBeDeleted?.map(img=>cloudinary.uploader.destroy(img.public_id))
+         await Promise.all(deleteImagesPromise)       
+      }
+      //upload new images
+      let uploadedImageUrls=[]
+      if(imagesToBeUploaded.length>0){
+        const uploadImagePromise = imagesToBeUploaded.map(img=>{
+          return new Promise((resolve,reject)=>{
+            const uploadstream = cloudinary.uploader.upload_stream(
+              {folder:"ShoppyX/Products/"},
+              (err,results)=>{
+                if(err)
+                  reject(new Error("Error uploading image"))
+                resolve({url:results.secure_url,public_id:results.public_id})
+            })
+            uploadstream.end(img.buffer)
+          })
+        })
+        uploadedImageUrls = await Promise.all(uploadImagePromise)
+      }
+      //merge all products images urls
+      allProductImages = [...imagesToBeStayed,...uploadedImageUrls]
+      const updateProduct = {
+        name,
+        availableSize,
+        category,
+        description,
+        discount,
+        featuredProduct:featuredProduct==="true",
+        features,
+        price,
+        images: allProductImages
+      }
+      const updatedProductResult = await Product.findByIdAndUpdate(req.params.id,updateProduct,{
+        new:true
+      })
       res.status(200).json({
         status:"success",
-        data:product
+        data:updatedProductResult
       })
+      
     } catch (err) {      
       next(err)
     }
