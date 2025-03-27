@@ -312,7 +312,7 @@ export async function updateMyPhoto(req,res,next){
     await cloudinary.uploader.destroy(req.user.profileImage.public_id)
     //now upload new image
     const imagePromise = new Promise((resolve,reject)=>{
-      const uploadstream = cloudinary.uploader.upload_stream({folder:"ShoppyX/Users/"},(error, results)=>{
+      const uploadstream = cloudinary.uploader.upload_stream({folder:"ShoppyX/Users/", secure:true},(error, results)=>{
         if(error)
           reject(new Error("There was an error uploading the image"))
         resolve({url:results.url,public_id:results.public_id})

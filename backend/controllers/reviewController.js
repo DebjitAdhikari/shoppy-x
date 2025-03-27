@@ -20,7 +20,7 @@ export async function createReview(req,res,next) {
         const imageUploadPromises=req.files.images?.map((file)=>{
             return new Promise((resolve,reject)=>{
                 const uploadstream = cloudinary.uploader.upload_stream(
-                    {folder:"ShoppyX/Reviews/Images"},
+                    {folder:"ShoppyX/Reviews/Images", secure:true},
                     (err,results)=>{
                         if(err)
                             return reject(new Error("Went wrong while uploading review images"))
@@ -35,7 +35,7 @@ export async function createReview(req,res,next) {
             return new Promise((resolve,reject)=>{
                 const uploadstream = cloudinary.uploader.upload_stream(
                     {
-                        folder:"ShoppyX/Reviews/Videos",
+                        folder:"ShoppyX/Reviews/Videos", secure:true,
                         resource_type:"video"
                     },
                     (err,results)=>{

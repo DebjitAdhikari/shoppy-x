@@ -7,6 +7,7 @@ import Modal from "../../common/Modal.jsx";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import deleteBannerService from "../../../../services/homebanners/deleteBannerService.js";
 import updateBannerService from "../../../../services/homebanners/updateBannerService.js";
+import successToastMessage from "../../../../utils/successToastMessage.js";
 
 function HomeAdminBanners() {
   //creation state
@@ -44,19 +45,7 @@ function HomeAdminBanners() {
   const [bannerImagePreview, setBannerImagePreview] = useState("");
   const [editBannerImagePreview, setEditBannerImagePreview] = useState("");
 
-  function successToast(message) {
-    toast.success(message, {
-      position: "top-right",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: false,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-      transition: Bounce,
-    });
-  }
+  
   
   // File upload handlers
   const handleImageChange = (e, setPreview) => {
@@ -131,7 +120,7 @@ function HomeAdminBanners() {
       await createNewBanner(formData);
       setIsAdding(false);
       setShowAddBannerModal(false);
-      successToast("New Banner added!");
+      successToastMessage("New Banner added!");
       setHasImageChanged(false)
       fetchAllBanners();
     } catch (err) {
@@ -157,7 +146,7 @@ function HomeAdminBanners() {
       
       setIsEditing(false);
       setShowEditBannerModal(false);
-      successToast("Banner updated successfully!");
+      successToastMessage("Banner updated successfully!");
       setHasImageChanged(false)
       fetchAllBanners();
     } catch (err) {
@@ -179,7 +168,7 @@ function HomeAdminBanners() {
     setIsDeleting(false);
     setShowDeleteModal(false);
     fetchAllBanners();
-    successToast("Banner deleted successfully");
+    successToastMessage("Banner deleted successfully");
   }
   
   useEffect(() => {
@@ -190,7 +179,7 @@ function HomeAdminBanners() {
   return (
     <>
       <section className="bg-white rounded-2xl shadow-md p-3 sm:p-6">
-        <ToastContainer></ToastContainer>
+        
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
           <h2 className="text-2xl font-bold text-gray-800">Hero Banners</h2>
           <button

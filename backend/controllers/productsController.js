@@ -38,7 +38,7 @@ export async function createProduct(req,res,next){
         })
       const imageUploadPromises = req.files.map((file)=>{
         return new Promise((resolve,reject)=>{
-          const uploadstream = cloudinary.uploader.upload_stream({folder:"ShoppyX/Products/"},
+          const uploadstream = cloudinary.uploader.upload_stream({folder:"ShoppyX/Products/", secure:true},
             (error,results)=>{
               if(error)
                 return reject(new Error("Something went wrong while uploading"))
@@ -130,7 +130,7 @@ export async function updateProduct(req,res,next){
         const uploadImagePromise = imagesToBeUploaded.map(img=>{
           return new Promise((resolve,reject)=>{
             const uploadstream = cloudinary.uploader.upload_stream(
-              {folder:"ShoppyX/Products/"},
+              {folder:"ShoppyX/Products/", secure:true},
               (err,results)=>{
                 if(err)
                   reject(new Error("Error uploading image"))

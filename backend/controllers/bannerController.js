@@ -11,7 +11,7 @@ export async function createBanner(req, res, next) {
                 message: "Fields are required"
             })
         const imagePromise = new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream({ folder: "ShoppyX/Home-Banners" },
+            const uploadStream = cloudinary.uploader.upload_stream({ folder: "ShoppyX/Home-Banners", secure:true },
                 (err, results) => {
                     if (err)
                         reject(new Error("Error uploading photot"))
@@ -84,7 +84,7 @@ export async function updateBanner(req, res, next) {
             await cloudinary.uploader.destroy(banner.image.public_id)
             //upload the new image
             const imagePromise = new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream({ folder: "ShoppyX/Home-Banners/" },
+                const uploadStream = cloudinary.uploader.upload_stream({ folder: "ShoppyX/Home-Banners/", secure:true },
                     (err, results) => {
                         if (err)
                             reject(new Error("Error uploading photot"))

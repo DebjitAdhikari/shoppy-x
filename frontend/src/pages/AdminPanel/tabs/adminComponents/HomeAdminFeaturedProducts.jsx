@@ -254,7 +254,6 @@ function AdminFeaturedProducts() {
   return (
     <>
       <section className="bg-white rounded-2xl shadow-md p-6">
-        <ToastContainer></ToastContainer>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
           <h2 className="text-2xl font-bold text-gray-800">
             Featured Products

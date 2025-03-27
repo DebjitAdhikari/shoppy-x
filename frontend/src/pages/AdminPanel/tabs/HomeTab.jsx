@@ -6,6 +6,7 @@ import createNewBanner from "../../../services/homebanners/createNewBanner.js";
 import HomeAdminFeaturedProducts from "./adminComponents/HomeAdminFeaturedProducts.jsx";
 import HomeAdminHomeCategories from "./adminComponents/HomeAdminHomeCategories.jsx";
 import HomeAdminBanners from "./adminComponents/HomeAdminBanners.jsx";
+import { ToastContainer } from "react-toastify";
 
 const HomeTab = () => {
   
@@ -18,6 +19,9 @@ const HomeTab = () => {
   
   
   return (
+    <>
+    {/* we will send toast from child components */}
+    <ToastContainer></ToastContainer>
     <div className="space-y-10 p-2 sm:p-6 bg-gray-50">
       {/* Hero Banners Section */}
       <HomeAdminBanners></HomeAdminBanners>
@@ -32,6 +36,7 @@ const HomeTab = () => {
   
       
     </div>
+    </>
   );
 };
 

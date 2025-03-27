@@ -4,6 +4,7 @@ import dotenv from "dotenv"
 import morgan from "morgan"
 import connectDB from "./config/database.js"
 import productsRouter from "./routers/productsRouter.js"
+import categoryRouter from "./routers/categoryRouter.js"
 import userRouter from "./routers/userRouter.js"
 import adminRouter from "./routers/adminRouter.js"
 import bannerRouter from "./routers/bannerRouter.js"
@@ -31,6 +32,7 @@ connectDB()
 //routes
 app.use("/api/v1/products",productsRouter)
 app.use("/api/v1/reviews",reviewRouter)
+app.use("/api/v1/categories",categoryRouter)
 app.use("/api/v1/users",userRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/banners",bannerRouter)
