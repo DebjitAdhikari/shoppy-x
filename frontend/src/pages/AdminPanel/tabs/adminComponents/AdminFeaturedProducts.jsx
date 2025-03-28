@@ -1,8 +1,8 @@
 import { AlertTriangle, Edit, ImagePlus, Plus, Trash, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import Modal from "../../common/Modal";
+import Modal from "../../common/Modal.jsx";
 import getAllFeaturedProductsService from "../../../../services/products/getAllFeaturedProductsService.js";
-import ImageUploadSection from "../../common/ImageUploadSection";
+import ImageUploadSection from "../../common/ImageUploadSection.jsx";
 import updateProductService from "../../../../services/products/updateProductService.js";
 import successToastMessage from "../../../../utils/successToastMessage.js";
 import deleteProductService from "../../../../services/products/deleteProductService.js";

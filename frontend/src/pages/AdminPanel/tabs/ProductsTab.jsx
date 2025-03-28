@@ -13,7 +13,7 @@ import getAllFeaturedProductsService from "../../../services/products/getAllFeat
 import ImageUploadSection from "../common/ImageUploadSection";
 import updateProductService from "../../../services/products/updateProductService.js";
 import successToastMessage from "../../../utils/successToastMessage.js";
-import HomeAdminFeaturedProducts from "./adminComponents/HomeAdminFeaturedProducts";
+import HomeAdminFeaturedProducts from "./adminComponents/AdminFeaturedProducts.jsx";
 import getAllProductsService from "../../../services/products/getAllProductsService.js";
 import getAllCategoriesService from "../../../services/categories/getAllCategoriesService.js";
 import createProductService from "../../../services/products/createProductService.js";
