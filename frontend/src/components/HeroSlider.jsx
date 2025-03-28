@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import getAllBanners from "../services/homebanners/getAllBanners.js";
+import Loader from "./Loader.jsx";
 
 
 function HeroSlider() {
@@ -29,7 +30,10 @@ function HeroSlider() {
     }, [slides]);//slides update then start running
     return (
         <div className="relative bg-gray-900 h-[600px] overflow-hidden">
-      {slides.map((slide, index) => (
+        
+      {
+      slides.length===0?<Loader></Loader>:
+      slides.map((slide, index) => (
         <div
           key={slide?._id}
           className={`absolute inset-0 transition-opacity duration-1000 ${

@@ -3,15 +3,23 @@ import Category from "../models/categoryModel.js"
 
 export async function createCategory(req,res,next) {
     try {
-        const{title,value}=req.body
+        const{title,value,featuredCategory}=req.body
         console.log("req body",req.body)
         const imageFile = req.file
         console.log("req file",req.file)
-        if(!title || !value || !imageFile)
+        if(!title || !value ||!featuredCategory|| !imageFile)
             return res.status(400).json({
                 status:"failed",
                 message:"Fields are required"
             })
+        //atfirst check whether im getting error 
+        const newCategory={
+            title,
+            value,
+            featuredCategory: featuredCategory==="yes"
+        }
+        const data = await Category.create(newCategory)
+        //now upload iamges
         const imageUploadPromise = new Promise((resolve,reject)=>{
             const uploadStream = cloudinary.uploader.upload_stream(
                 {folder:"ShoppyX/Categories/", secure:true},
@@ -23,7 +31,9 @@ export async function createCategory(req,res,next) {
             uploadStream.end(imageFile.buffer)
         })
         const image=await imageUploadPromise
-      const data = await Category.create({title,value,image})
+        data.image = image
+        //now save 
+        await data.save()
       res.status(200).json({
         status:"success",
         data
@@ -45,9 +55,9 @@ export async function getAllCategories(req,res,next) {
 }
 export async function updateCategory(req,res,next) {
     try {
-        const{title,value}=req.body
+        const{title,value,featuredCategory}=req.body
         const imageFile = req.file
-        if(!title || !value)
+        if(!title || !value || !featuredCategory)
             return res.status(400).json({
                 status:"failed",
                 message:"Fields are required"
@@ -61,6 +71,7 @@ export async function updateCategory(req,res,next) {
         }
         category.title=title
         category.value=value
+        category.featuredCategory = featuredCategory==="yes"
         
         if(imageFile){
             //at first delete the existing
@@ -83,6 +94,28 @@ export async function updateCategory(req,res,next) {
       res.status(200).json({
         status:"success",
         data:category
+      })
+    } catch (err) {
+        next(err)
+    }
+}
+export async function deleteCategory(req,res,next) {
+    try {
+      const categoryItem = await Category.findById(req.params.id)
+      if(!categoryItem)
+        return res.status(404).json({
+            status:"failed",
+            message:"Category not found"
+        })
+        if(categoryItem.image?.public_id){
+            const imageDeletePromise = cloudinary.uploader.destroy(categoryItem.image.public_id)
+            await imageDeletePromise
+        }
+
+       await categoryItem.deleteOne()
+      res.status(200).json({
+        status:"success",
+        data:null
       })
     } catch (err) {
         next(err)

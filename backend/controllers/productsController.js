@@ -24,7 +24,7 @@ export async function getAllFeaturedProducts(req,res,next){
 }
 export async function createProduct(req,res,next){
     try {
-      // console.log(req.body)
+      console.log(req.body)
       // console.log(req.files)
       if(!req.files || req.files.length===0)
         return res.status(400).json({
@@ -50,8 +50,7 @@ export async function createProduct(req,res,next){
       })
       const imageUrls = await Promise.all(imageUploadPromises)
       // console.log(imageUrls)
-      if(req.body.featuredProduct)
-        req.body.featuredProduct=true
+      req.body.featuredProduct= req.body.featuredProduct==="true"
       const products = await Product.create({...req.body,images:imageUrls})
       res.status(200).json({
         status:"success",
@@ -110,7 +109,7 @@ export async function updateProduct(req,res,next){
       }
       //1)at first we will delete those image that dont need anymore
       //2)upload the new image and merge with the existing image of products
-      const {name,availableSize,category,imageUrls,description,discount,featuredProduct,features,price} = req.body
+      const {name,availableSize,category,inStock,imageUrls,description,discount,featuredProduct,features,price} = req.body
       let allProductImages=product.images
       const imagesToBeDeleted= allProductImages.filter(img=>!imageUrls.includes(img.url))
       const imagesToBeStayed = allProductImages.filter(img=>imageUrls.includes(img.url))
@@ -147,6 +146,7 @@ export async function updateProduct(req,res,next){
         name,
         availableSize,
         category,
+        inStock,
         description,
         discount,
         featuredProduct:featuredProduct==="true",

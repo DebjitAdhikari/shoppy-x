@@ -8,5 +8,6 @@ router.route("/getAll")
     .get(categoryController.getAllCategories)
 router.route("/:id")
     .patch(upload.single("image"),categoryController.updateCategory)
+    .delete(categoryController.deleteCategory)
 
 export default router

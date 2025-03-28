@@ -1,25 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Plus, Edit, Trash, X } from "lucide-react";
+import { Plus, Edit, Trash, X, AlertTriangle } from "lucide-react";
 import Modal from "../common/Modal";
 import createCategoryService from "../../../services/categories/createCategoryService.js";
-import getAllCategoriesService from "../../../services/categories/getAllCategoriesService";
+import getAllCategoriesService from "../../../services/categories/getAllCategoriesService.js";
 import successToastMessage from "../../../utils/successToastMessage.js";
-import updateCategoryService from "../../../services/categories/updateCategoryService";
+import updateCategoryService from "../../../services/categories/updateCategoryService.js";
+import deleteCategoryService from "../../../services/categories/deleteCategoryService.js";
 const CategoriesTab = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({
     title: "",
     value: "",
+    featuredCategory:"no"
   });
   const [editCategory,setEditCategory]=useState({})
   const [editCategoryImage,setEditCategoryImage]=useState("")
+  const [categoryIdToDelete,setCategoryIdToDelete]=useState(null)
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [imageFile, setImageFile] = useState(null);
   const [imageFilePreview, setImageFilePreview] = useState(null);
+  const [isError,setIsError] = useState(false)
   const [isUploading, setIsUploading] = useState(false);
-
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef(null);
+  function resetAddCategoryForm(){
+    setNewCategory({
+      title: "",
+      value: "",
+      featuredCategory:"no"
+    })
+  }
 
   function handleImageFileChange(e) {
     const file = e.target.files[0];
@@ -69,23 +82,37 @@ const CategoriesTab = () => {
   async function handleNewSubmit(e) {
     e.preventDefault();
     setIsUploading(true);
-    console.log(newCategory);
+    console.log("data",newCategory);
     console.log(imageFile);
     const formData = new FormData();
     formData.append("title", newCategory.title);
     formData.append("value", newCategory.value);
+    formData.append("featuredCategory",newCategory.featuredCategory)
     formData.append("image", imageFile);
-    const data = await createCategoryService(formData);
-    console.log(data);
+   
+      const {data} = await createCategoryService(formData);
+      console.log(data);
+      if(data.status==="error"){
+        setIsError(true)
+        setIsUploading(false)
+        return
+      }
+      setIsError(false)
+    setIsUploading(false)
     setShowModal(false);
+    resetAddCategoryForm()
     fetchCategories();
     successToastMessage("Categories Added!");
   }
 
   function openEditModalForm(category){
     setShowEditModal(true)
-    setEditCategory(category)
+    setEditCategory({
+      ...category,
+      featuredCategory:category.featuredCategory?"yes":"no"
+    })
     setEditCategoryImage(category.image.url)
+    console.log(category)
     setImageFilePreview(null);
     setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -99,6 +126,7 @@ const CategoriesTab = () => {
     const formData = new FormData()
     formData.append("title",editCategory.title)
     formData.append("value",editCategory.value)
+    formData.append("featuredCategory",editCategory.featuredCategory)
     if(imageFile)
     formData.append("image",imageFile)
     const data = await updateCategoryService(editCategory._id,formData)
@@ -108,6 +136,15 @@ const CategoriesTab = () => {
     fetchCategories()
     successToastMessage("Category Updated!")
 
+  }
+  async function handleCategoryDelete(){
+    setIsDeleting(true)
+    await deleteCategoryService(categoryIdToDelete)
+    
+    setIsDeleting(false)
+    setShowDeleteModal(false)
+    fetchCategories()
+    successToastMessage("Category Deleted!")
   }
   // Example categories
 
@@ -157,7 +194,12 @@ const CategoriesTab = () => {
                   <Edit className="w-4 h-4 mr-2" />
                   <span className="text-sm">Edit</span>
                 </button>
-                <button className="flex-1 py-2 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md flex items-center justify-center transition-all duration-200 border border-red-100">
+                <button className="flex-1 py-2 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md flex items-center justify-center transition-all duration-200 border border-red-100"
+                  onClick={()=>{
+                    setCategoryIdToDelete(category._id)
+                    setShowDeleteModal(true)
+                  }}
+                >
                   <Trash className="w-4 h-4 mr-2" />
                   <span className="text-sm">Delete</span>
                 </button>
@@ -205,6 +247,25 @@ const CategoriesTab = () => {
             />
           </div>
           <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Featured Category
+              </label>
+              <select
+                name="featuredCategory"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                value={newCategory.featuredCategory}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            {
+              isError && 
+            <p className="text-red-500">Category with that Title or Value already exist </p>
+            }
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Image
             </label>
@@ -235,6 +296,7 @@ const CategoriesTab = () => {
           )}
           <button
             type="submit"
+            disabled={isUploading}
             className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             {isUploading ? "Uploading..." : "Add Category"}
@@ -279,6 +341,25 @@ const CategoriesTab = () => {
             />
           </div>
           <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Featured Category
+              </label>
+              <select
+                name="featuredCategory"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                value={editCategory.featuredCategory}
+                onChange={handleEditInputChange}
+                required
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            {
+              isError && 
+            <p className="text-red-500">Category with that Title or Value already exist </p>
+            }
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Image
             </label>
@@ -309,11 +390,46 @@ const CategoriesTab = () => {
           <button
             type="submit"
             className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            disabled={isUploading}
           >
             {isUploading ? "Uploading..." : "Add Category"}
           </button>
         </form>
       </Modal>
+      {/* Delete Confirmation Modal */}
+            <Modal
+              isOpen={showDeleteModal}
+              onClose={() => {
+                setShowDeleteModal(false);
+                setCategoryIdToDelete(null);
+              }}
+              title="Confirm Delete"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center p-4 bg-red-50 text-red-600 rounded-lg">
+                  <AlertTriangle className="w-6 h-6 mr-3" />
+                  <p>
+                    Are you sure you want to delete this item? This action cannot be
+                    undone.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCategoryDelete}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </Modal>
     </div>
   );
 };

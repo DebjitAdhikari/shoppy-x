@@ -5,6 +5,7 @@ import { Menu } from 'lucide-react';
 import logOutAdmin from '../../../services/admin/logOutAdmin.js';
 import AdminLogin from '../tabs/AdminLogin.jsx';
 import checkAdminLogin from '../../../services/admin/checkAdminLogin.js';
+import { ToastContainer } from 'react-toastify';
 
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,6 +28,8 @@ const AdminLayout = () => {
     <>
     {
       !isAdminLoggedIn ? <AdminLogin setIsAdminLoggedIn={setIsAdminLoggedIn}></AdminLogin>:
+      <>
+      <ToastContainer></ToastContainer>
     <div className="flex h-screen bg-gray-100">
       {/* Mobile menu button */}
       <button
@@ -58,6 +61,7 @@ const AdminLayout = () => {
         <Outlet />
       </main>
     </div>
+      </>
     }
     </>
   );

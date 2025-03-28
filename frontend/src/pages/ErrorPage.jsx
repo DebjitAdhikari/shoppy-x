@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom'; // If using React Router
 import { motion } from 'framer-motion';
 
-function ErrorPage() {
+function ErrorPage({customErrorMessage}) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.8 } },
@@ -33,8 +33,11 @@ function ErrorPage() {
         <motion.p
           variants={itemVariants}
           className="text-2xl text-gray-800 mb-6"
-        >
-          Aww, snap! This page decided to take a vacation.
+        >Aww, snap! 
+          {
+            customErrorMessage?customErrorMessage:" This page decided to take a vacation."
+          }
+          
         </motion.p>
         <motion.p
           variants={itemVariants}

@@ -5,6 +5,7 @@ export default async function getProductById(productId){
       const {data}= await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`)
       return data
     } catch (err) {
-        console.log(err)
+        console.log(err.response.data)
+        return (err.response)
     }
 }

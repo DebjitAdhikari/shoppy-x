@@ -1,36 +1,28 @@
 import { AlertTriangle, Edit, ImagePlus, Plus, Trash, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../../common/Modal";
-import getAllFeaturedProductsService from "../../../../services/products/getAllFeaturedProductsService";
+import getAllFeaturedProductsService from "../../../../services/products/getAllFeaturedProductsService.js";
 import ImageUploadSection from "../../common/ImageUploadSection";
-import updateProductService from "../../../../services/products/updateProductService";
-import { ToastContainer } from "react-toastify";
+import updateProductService from "../../../../services/products/updateProductService.js";
 import successToastMessage from "../../../../utils/successToastMessage.js";
+import deleteProductService from "../../../../services/products/deleteProductService.js";
 
-function AdminFeaturedProducts() {
+function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   const [featuredProducts, setFeaturedProducts] = useState([]);
 
   // State for modals and forms
-  const [showAddProductModal, setShowAddProductModal] = useState(false);
-  const [showEditProductModal, setShowEditProductModal] = useState(false);
+ const [showEditProductModal, setShowEditProductModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isUpdating,setIsUpdating]= useState(false)
+  const [isDeleting,setIsDeleting]= useState(false)
 
   // State for form management
-  const [newProductForm, setNewProductForm] = useState({
-    name: "",
-    category: "",
-    price: "",
-    featuredProduct:"",
-    discount: "",
-    description: "",
-    availableSize: "",
-    features: "",
-  });
+ 
   const [editProductForm, setEditProductForm] = useState({
     id: null,
     name: "",
     category: "",
+    inStock:null,
     featuredProduct:"",
     price: "",
     discount: "",
@@ -42,26 +34,12 @@ function AdminFeaturedProducts() {
   // Image states
   const [newProductImages, setNewProductImages] = useState([]);
   const [editProductImages, setEditProductImages] = useState([]);
-
-  // References
-  const newProductImageRef = useRef(null);
-  const editProductImageRef = useRef(null);
-
   // Item to delete state
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  // Image change handler for new product
-  const handleNewProductImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const newImagesWithPreview = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-
-    // Limit to 5 images
-    const updatedImages = [...newProductImages, ...newImagesWithPreview].slice(0, 5);
-    setNewProductImages(updatedImages);
-  };
+  // References
+  
+  const editProductImageRef = useRef(null);
 
   // Image change handler for edit product
   const handleEditProductImageChange = (e) => {
@@ -77,30 +55,12 @@ function AdminFeaturedProducts() {
   };
 
   // Remove image from new product
-  const removeNewProductImage = (index) => {
-    const updatedImages = newProductImages.filter((_, i) => i !== index);
-    setNewProductImages(updatedImages);
-  };
+ 
 
   // Remove image from edit product
   const removeEditProductImage = (index) => {
     const updatedImages = editProductImages.filter((_, i) => i !== index);
     setEditProductImages(updatedImages);
-  };
-
-  // Open add product modal
-  const openAddProductModal = () => {
-    setNewProductForm({
-      name: "",
-      category: "",
-      price: "",
-      discount: "",
-      description: "",
-      availableSize: "",
-      features: "",
-    });
-    setNewProductImages([]);
-    setShowAddProductModal(true);
   };
 
   // Open edit product modal
@@ -109,6 +69,7 @@ function AdminFeaturedProducts() {
       id: product._id,
       name: product.name,
       category: product.category,
+      inStock: product.inStock,
       featuredProduct: product.featuredProduct? "yes":"no",
       price: product.price,
       discount: product.discount,
@@ -127,14 +88,7 @@ function AdminFeaturedProducts() {
     setShowEditProductModal(true);
   };
 
-  // Handle input changes for new product
-  const handleNewProductInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewProductForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  
 
   // Handle input changes for edit product
   const handleEditProductInputChange = (e) => {
@@ -143,55 +97,21 @@ function AdminFeaturedProducts() {
       ...prev,
       [name]: value,
     }));
-    // console.log("changed",name,"with",value,"result",editProductForm)
   };
 
-  // Submit new product
-  const handleAddProductSubmit = (e) => {
-    e.preventDefault();
-    const newProduct = {
-      ...newProductForm,
-      id: featuredProducts.length + 1,
-      sizes: newProductForm.sizes ? newProductForm.sizes.split(",").map((s) => s.trim()) : [],
-      features: newProductForm.features ? newProductForm.features.split(",").map((f) => f.trim()) : [],
-      images: newProductImages.map(img => ({
-        url: img.preview,
-        file: img.file
-      })),
-      price: parseFloat(newProductForm.price),
-      discount: parseFloat(newProductForm.discount),
-    };
-
-    setFeaturedProducts([...featuredProducts, newProduct]);
-    setShowAddProductModal(false);
-    setNewProductImages([]);
-  };
+  
 
   // Submit edited product
   async function handleEditProductSubmit(e) {
     e.preventDefault();
     setIsUpdating(true)
-    // const updatedProducts = featuredProducts.map((product) =>
-    //   product.id === editProductForm.id
-    //     ? {
-    //         ...editProductForm,
-    //         sizes: editProductForm.sizes ? editProductForm.sizes.split(",").map((s) => s.trim()) : [],
-    //         features: editProductForm.features ? editProductForm.features.split(",").map((f) => f.trim()) : [],
-    //         images: editProductImages.map(img => ({
-    //           url: img.preview,
-    //           file: img.file
-    //         })),
-    //         price: parseFloat(editProductForm.price),
-    //         discount: parseFloat(editProductForm.discount),
-    //       }
-    //     : product
-    // );
     console.log(editProductImages)
     console.log(editProductForm)
     const formData = new FormData()
     formData.append("name", editProductForm.name);
   formData.append("availableSize", editProductForm.availableSize);
   formData.append("category", editProductForm.category);
+  formData.append("inStock", editProductForm.inStock);
   formData.append("description", editProductForm.description);
   formData.append("discount", editProductForm.discount);
 
@@ -210,26 +130,27 @@ function AdminFeaturedProducts() {
   console.log("updated data ", data )
   data.status==="success" && successToastMessage("Product Updated Successfully")
   setIsUpdating(false)
-  
-  // setFeaturedProducts(updatedProducts);
     setShowEditProductModal(false);
     setEditProductImages([]);
-    fetchFeaturedProducts()
+    // fetchFeaturedProducts()
+    fetchAllProducts()
   };
 
   // Delete product
-  const handleDelete = () => {
-    if (!itemToDelete) return;
-
-    const { type, id } = itemToDelete;
-
-    if (type === "product") {
-      setFeaturedProducts(featuredProducts.filter((p) => p.id !== id));
-    }
-
-    setShowDeleteModal(false);
-    setItemToDelete(null);
-  };
+  async function handleDelete () {
+      if (!itemToDelete) return;
+  
+      const { id } = itemToDelete;
+      setIsDeleting(true)
+      console.log("delte item id",id)
+      const data = await deleteProductService(id)
+      console.log(data)
+      setIsDeleting(false)
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+      fetchAllProducts()
+      successToastMessage("Product Deleted Successfully!")
+    };
 
   // Open delete modal
   const openDeleteModal = (type, id) => {
@@ -238,18 +159,19 @@ function AdminFeaturedProducts() {
   };
 
   // Fetch featured products
-  async function fetchFeaturedProducts() {
-    const { data } = await getAllFeaturedProductsService();
-    console.log("featured Products", data);
-    setFeaturedProducts(data);
-  }
+  // async function fetchFeaturedProducts() {
+  //   const { data } = await getAllFeaturedProductsService();
+  //   console.log("featured Products", data);
+  //   setFeaturedProducts(data);
+  // }
 
   useEffect(() => {
-    fetchFeaturedProducts()
-  }, []);
+    // fetchFeaturedProducts()
+    setFeaturedProducts(allProducts)
+    console.log("from child",allCategories)
+  }, [allProducts,allCategories]);
 
-  // Render method for image upload section
-  
+ 
 
   return (
     <>
@@ -258,13 +180,7 @@ function AdminFeaturedProducts() {
           <h2 className="text-2xl font-bold text-gray-800">
             Featured Products
           </h2>
-          <button
-            onClick={openAddProductModal}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Product
-          </button>
+          
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredProducts?.map((product) => (
@@ -285,6 +201,11 @@ function AdminFeaturedProducts() {
                     -{product.discount}%
                   </div>
                 )}
+                { product.inStock > 0 && (
+                  <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    Only {product.inStock} Left!
+                  </div>
+                )}
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-semibold text-gray-800 truncate">
@@ -292,11 +213,11 @@ function AdminFeaturedProducts() {
                 </h3>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="text-lg font-bold text-indigo-600">
-                    ${(product.price * (1 - product.discount / 100)).toFixed(0)}
+                  ₹{(product.price * (1 - product.discount / 100)).toFixed(0)}
                   </span>
                   {product.discount > 0 && (
                     <span className="text-sm text-gray-500 line-through">
-                      ${product.price}
+                      ₹{product.price}
                     </span>
                   )}
                 </div>
@@ -319,7 +240,7 @@ function AdminFeaturedProducts() {
                     <Edit className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => openDeleteModal("product", product.id)}
+                    onClick={() => openDeleteModal("product", product._id)}
                     className="p-2 hover:bg-red-100 rounded-full transition-colors duration-200 text-red-600"
                     aria-label="Delete product"
                   >
@@ -331,147 +252,6 @@ function AdminFeaturedProducts() {
           ))}
         </div>
       </section>
-
-      {/* Add Product Modal */}
-      <Modal
-        isOpen={showAddProductModal}
-        onClose={() => {
-          setShowAddProductModal(false);
-          setNewProductImages([]);
-        }}
-        title="Add Product"
-      >
-        <form
-          className="space-y-4 h-[80vh] overflow-y-auto"
-          onSubmit={handleAddProductSubmit}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Product name"
-                value={newProductForm.name}
-                onChange={handleNewProductInputChange}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                name="category"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                value={newProductForm.category}
-                onChange={handleNewProductInputChange}
-                required
-              >
-                <option value="">Select category</option>
-                <option>Men</option>
-                <option>Women</option>
-                <option>Kids</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price ($)
-              </label>
-              <input
-                type="number"
-                name="price"
-                step="0.01"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="0.00"
-                value={newProductForm.price}
-                onChange={handleNewProductInputChange}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Discount (%)
-              </label>
-              <input
-                type="number"
-                name="discount"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="0%"
-                value={newProductForm.discount}
-                onChange={handleNewProductInputChange}
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-              rows="3"
-              placeholder="Product description"
-              value={newProductForm.description}
-              onChange={handleNewProductInputChange}
-              required
-            ></textarea>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Available Sizes
-              </label>
-              <input
-                type="text"
-                name="availableSize"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="S, M, L, XL"
-                value={newProductForm.availableSize}
-                onChange={handleNewProductInputChange}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Features
-              </label>
-              <input
-                type="text"
-                name="features"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Feature 1, Feature 2"
-                value={newProductForm.features}
-                onChange={handleNewProductInputChange}
-                required
-              />
-            </div>
-          </div>
-
-          
-          <ImageUploadSection
-            theImages={newProductImages}
-            onImageChange={handleNewProductImageChange}
-            removeImage={removeNewProductImage}
-            imageRef={newProductImageRef}
-             >
-
-          </ImageUploadSection>
-          
-          <button
-            type="submit"
-            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-          >
-            Add Product
-          </button>
-        </form>
-      </Modal>
 
       {/* Edit Product Modal */}
       <Modal
@@ -502,7 +282,7 @@ function AdminFeaturedProducts() {
               />
             </div>
             {/* edit category */}
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Category
               </label>
@@ -513,12 +293,14 @@ function AdminFeaturedProducts() {
                 onChange={handleEditProductInputChange}
                 required
               >
-                <option value="">Select category</option>
-                <option>Men</option>
-                <option>Women</option>
-                <option>Kids</option>
+                {
+                  allCategories?.map((category)=>(
+                    <option key={category._id} value={category.value}>{category.title}</option>
+                  ))
+                }
+               
               </select>
-            </div> */}
+            </div>
           </div>
           {/* description and featured */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -557,7 +339,7 @@ function AdminFeaturedProducts() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price ($)
+                Price (₹)
               </label>
               <input
                 type="number"
@@ -585,6 +367,24 @@ function AdminFeaturedProducts() {
               />
             </div>
           </div>
+          {/* instock */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                In Stock
+              </label>
+              <input
+                type="number"
+                name="inStock"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                placeholder="0.00"
+                value={editProductForm.inStock}
+                onChange={handleEditProductInputChange}
+                required
+              />
+            </div>
+            </div>
+          {/* size  */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -660,9 +460,13 @@ function AdminFeaturedProducts() {
             </button>
             <button
               onClick={handleDelete}
+              disabled={isDeleting}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
             >
-              Delete
+              {
+                isDeleting?"Delete...":"Delete"
+              }
+              
             </button>
           </div>
         </div>
