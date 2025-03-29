@@ -11,6 +11,6 @@ export default async function updateCategoryService(id,formData){
       return data
     } catch (err) {
         console.log(err)
-        throw new Error(err)
+        return (err.response)
     }
 }

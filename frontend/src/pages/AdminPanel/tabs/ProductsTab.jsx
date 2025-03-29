@@ -18,6 +18,7 @@ import getAllProductsService from "../../../services/products/getAllProductsServ
 import getAllCategoriesService from "../../../services/categories/getAllCategoriesService.js";
 import createProductService from "../../../services/products/createProductService.js";
 import deleteProductService from "../../../services/products/deleteProductService.js";
+import selectEditCategory from "../../../utils/selectEditCategory.js";
 
 function ProductsTab() {
   const [allProducts, setAllProducts] = useState([]);
@@ -128,12 +129,13 @@ function ProductsTab() {
     setShowAddProductModal(true);
   };
 
+  
   // Open edit product modal
   const openEditProductModal = (product) => {
     setEditProductForm({
       id: product._id,
       name: product.name,
-      category: product.category,
+      category: selectEditCategory(allCategories,product),
       inStock: product.inStock,
       featuredProduct: product.featuredProduct ? "yes" : "no",
       actualPrice: product.actualPrice,

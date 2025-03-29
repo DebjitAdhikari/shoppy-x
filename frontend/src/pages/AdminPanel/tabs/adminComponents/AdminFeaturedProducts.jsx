@@ -1,11 +1,11 @@
 import { AlertTriangle, Edit, ImagePlus, Plus, Trash, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../../common/Modal.jsx";
-import getAllFeaturedProductsService from "../../../../services/products/getAllFeaturedProductsService.js";
 import ImageUploadSection from "../../common/ImageUploadSection.jsx";
 import updateProductService from "../../../../services/products/updateProductService.js";
 import successToastMessage from "../../../../utils/successToastMessage.js";
 import deleteProductService from "../../../../services/products/deleteProductService.js";
+import selectEditCategory from "../../../../utils/selectEditCategory.js";
 
 function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -64,11 +64,13 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   };
 
   // Open edit product modal
+  
   const openEditProductModal = (product) => {
     setEditProductForm({
       id: product._id,
       name: product.name,
-      category: product.category,
+      // category: product.category,
+      category: selectEditCategory(allCategories,product),
       inStock: product.inStock,
       featuredProduct: product.featuredProduct? "yes":"no",
       actualPrice: product.actualPrice,
@@ -160,12 +162,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
     setShowDeleteModal(true);
   };
 
-  // Fetch featured products
-  // async function fetchFeaturedProducts() {
-  //   const { data } = await getAllFeaturedProductsService();
-  //   console.log("featured Products", data);
-  //   setFeaturedProducts(data);
-  // }
+  
 
   useEffect(() => {
     // fetchFeaturedProducts()

@@ -82,6 +82,7 @@ const CategoriesTab = () => {
   async function handleNewSubmit(e) {
     e.preventDefault();
     setIsUploading(true);
+    setIsError(false)
     console.log("data",newCategory);
     console.log(imageFile);
     const formData = new FormData();
@@ -117,8 +118,17 @@ const CategoriesTab = () => {
     setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
+
+  //close the add category modal form
+  function closeModalForAddCategory(){
+    resetAddCategoryForm()
+    setImageFilePreview(null);
+    setIsError(false)
+    setShowModal(false);
+  }
   async function handleEditSubmit(e){
     e.preventDefault()
+    setIsError(false)
     setIsUploading(true)
     console.log(editCategory)
     // console.log(imageFile)
@@ -129,8 +139,13 @@ const CategoriesTab = () => {
     formData.append("featuredCategory",editCategory.featuredCategory)
     if(imageFile)
     formData.append("image",imageFile)
-    const data = await updateCategoryService(editCategory._id,formData)
-    console.log(data)
+    const {data} = await updateCategoryService(editCategory._id,formData)
+    if(data.status==="error"){
+      setIsError(true)
+      setIsUploading(false)
+      return
+    } 
+    console.log("updated",data)
     setIsUploading(false)
     setShowEditModal(false)
     fetchCategories()
@@ -212,12 +227,11 @@ const CategoriesTab = () => {
       <Modal
         isOpen={showModal}
         onClose={() => {
-          setImageFilePreview(null);
-          setShowModal(false);
+          closeModalForAddCategory()
         }}
         title="Add Category"
       >
-        <form className="space-y-4" onSubmit={handleNewSubmit}>
+        <form className="space-y-4 max-h-[80vh] overflow-y-auto" onSubmit={handleNewSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Category Name
@@ -340,7 +354,7 @@ const CategoriesTab = () => {
               required
             />
           </div>
-          <div>
+          {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Featured Category
               </label>
@@ -354,7 +368,7 @@ const CategoriesTab = () => {
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
               </select>
-            </div>
+            </div> */}
             {
               isError && 
             <p className="text-red-500">Category with that Title or Value already exist </p>
@@ -392,7 +406,7 @@ const CategoriesTab = () => {
             className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             disabled={isUploading}
           >
-            {isUploading ? "Uploading..." : "Add Category"}
+            {isUploading ? "Updating..." : "Update"}
           </button>
         </form>
       </Modal>

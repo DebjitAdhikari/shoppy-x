@@ -53,6 +53,17 @@ export async function getAllCategories(req,res,next) {
         next(err)
     }
 }
+export async function getSomeCategories(req,res,next) {
+    try {
+      const data = await Category.find({}).limit(6)
+      res.status(200).json({
+        status:"success",
+        data
+      })
+    } catch (err) {
+        next(err)
+    }
+}
 export async function updateCategory(req,res,next) {
     try {
         const{title,value,featuredCategory}=req.body
