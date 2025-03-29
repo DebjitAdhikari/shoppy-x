@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Star, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import Product from '../components/Product';
+import getProductsByCategoryService from '../services/products/getProductsByCategoryService.js';
 
 
-const imageUrls = [
-  "https://images.unsplash.com/photo-1499096382193-ebb232527fee?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  "https://images.unsplash.com/photo-1627384113743-6bd5a479fffd?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  "https://images.unsplash.com/photo-1519125323398-675f0ddb6308",
-  "https://images.unsplash.com/photo-1517635676447-3a480fbfd8f2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-];
 
-
-const products = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name: `Product ${i + 1}`,
-  price: Math.floor(Math.random() * 200) + 50,
-  discount: Math.random() > 0.5 ? Math.floor(Math.random() * 30) + 10 : 0,
-  rating: (Math.random() * 2 + 3).toFixed(1),
-  reviews: Math.floor(Math.random() * 500) + 50,
-  image: imageUrls[i % imageUrls.length]
-}));
 
 const sortOptions = [
   { name: 'Most Popular', value: 'popular' },
@@ -60,6 +44,7 @@ const filters = [
 ];
 
 const CategoryProducts = () => {
+  const [products,setProducts]=useState([])
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
@@ -149,7 +134,15 @@ const CategoryProducts = () => {
       <span className="ml-2 text-gray-600">{option.label}</span>
     </label>
   );
-
+  const {category} = useParams()
+  async function fetchProducts() {
+    const {data} = await getProductsByCategoryService(category)
+    setProducts(data)
+    console.log(data)
+  }
+  useEffect(()=>{
+    fetchProducts()
+  },[])
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
       {/* Header Section */}
@@ -240,8 +233,8 @@ const CategoryProducts = () => {
         {/* Products Grid */}
         <div className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {paginatedProducts.map((product) => (
-              <Product key={product.id} product={product} />
+            {paginatedProducts?.map((product) => (
+              <Product key={product._id} product={product} />
             ))}
           </div>
 

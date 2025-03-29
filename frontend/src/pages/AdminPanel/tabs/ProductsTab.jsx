@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../common/Modal";
-import getAllFeaturedProductsService from "../../../services/products/getAllFeaturedProductsService.js";
 import ImageUploadSection from "../common/ImageUploadSection";
 import updateProductService from "../../../services/products/updateProductService.js";
 import successToastMessage from "../../../utils/successToastMessage.js";
@@ -301,7 +300,7 @@ function ProductsTab() {
         allProducts={featuredProducts}
         fetchAllProducts={fetchAllProducts}
       ></HomeAdminFeaturedProducts>
-      <section className="bg-white rounded-2xl shadow-md p-6">
+      <section className="bg-white mt-4 rounded-2xl shadow-md p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
           <h2 className="text-2xl font-bold text-gray-800">All Products</h2>
           <button

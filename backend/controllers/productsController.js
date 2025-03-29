@@ -11,6 +11,19 @@ export async function getAllProducts(req,res,next){
       next(err)       
     }
 }
+export async function getProductsByCategory(req,res,next){
+    try {
+       
+      const {category}=req.params
+      const products = await Product.find({category})
+      res.status(200).json({
+        status:"success",
+        data:products
+      })
+    } catch (err) {
+      next(err)       
+    }
+}
 export async function getAllFeaturedProducts(req,res,next){
     try {
       const products = await Product.find({featuredProduct:true})
