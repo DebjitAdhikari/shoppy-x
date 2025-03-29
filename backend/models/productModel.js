@@ -4,8 +4,9 @@ const productSchema = new mongoose.Schema({
         type:String,
         required:[true,"A product must have name"]
     },
-    price:Number,
+    actualPrice:Number,
     discount:Number,
+    finalPrice:Number,
     inStock:Number,
     rating:Number,
     description:String,
@@ -26,5 +27,10 @@ const productSchema = new mongoose.Schema({
     }]
 })
 
+productSchema.pre("save", function(next){
+    if(this.isModified("discount") || this.isModified("actualPrice"))
+        this.finalPrice = Math.round(this.actualPrice - (this.actualPrice * this.discount)/100)
+    next()
+})
 const Product = mongoose.model("Products",productSchema)
 export default Product

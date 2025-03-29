@@ -35,7 +35,7 @@ function ProductsTab() {
   const [newProductForm, setNewProductForm] = useState({
     name: "",
     category: "",
-    price: "",
+    actualPrice: "",
     inStock: 0,
     featuredProduct: "no",
     discount: "",
@@ -49,7 +49,7 @@ function ProductsTab() {
     category: "",
     inStock: null,
     featuredProduct: "",
-    price: "",
+    actualPrice: "",
     discount: "",
     description: "",
     availableSize: "",
@@ -116,7 +116,7 @@ function ProductsTab() {
     setNewProductForm({
       name: "",
       category: allCategories.length > 0 ? allCategories[0].value : "",
-      price: "",
+      actualPrice: "",
       inStock: 0,
       featuredProduct: "no",
       discount: "",
@@ -136,7 +136,7 @@ function ProductsTab() {
       category: product.category,
       inStock: product.inStock,
       featuredProduct: product.featuredProduct ? "yes" : "no",
-      price: product.price,
+      actualPrice: product.actualPrice,
       discount: product.discount,
       description: product.description,
       availableSize: product.availableSize,
@@ -178,7 +178,7 @@ function ProductsTab() {
     e.preventDefault();
     console.log(newProductForm);
     console.log(newProductImages);
-    if(newProductForm.discount<0 || newProductForm.price<0||newProductForm.inStock<0)
+    if(newProductForm.discount<0 || newProductForm.actualPrice<0||newProductForm.inStock<0)
       return 
     setIsUploading(true)
     const formData = new FormData();
@@ -194,7 +194,7 @@ function ProductsTab() {
       newProductForm.featuredProduct === "yes"
     );
     formData.append("features", newProductForm.features);
-    formData.append("price", newProductForm.price);
+    formData.append("actualPrice", newProductForm.actualPrice);
     newProductImages.forEach((img) => {
       if (img.file) formData.append("images", img.file);
     });
@@ -213,7 +213,7 @@ function ProductsTab() {
     e.preventDefault();
     console.log(editProductImages);
     console.log(editProductForm);
-    if(editProductForm.discount<0 || editProductForm.price<0||editProductForm.inStock<0)
+    if(editProductForm.discount<0 || editProductForm.actualPrice<0||editProductForm.inStock<0)
       return 
     setIsUploading(true);
     const formData = new FormData();
@@ -229,7 +229,7 @@ function ProductsTab() {
       editProductForm.featuredProduct === "yes"
     );
     formData.append("features", editProductForm.features);
-    formData.append("price", editProductForm.price);
+    formData.append("actualPrice", editProductForm.actualPrice);
     editProductImages.forEach((img) => {
       if (img.file) formData.append("images", img.file);
     });
@@ -341,11 +341,11 @@ function ProductsTab() {
                 </h3>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="text-lg font-bold text-indigo-600">
-                  ₹{(product.price * (1 - product.discount / 100)).toFixed(0)}
+                  ₹{(product.finalPrice)}
                   </span>
                   {product.discount > 0 && (
                     <span className="text-sm text-gray-500 line-through">
-                      ₹{product.price}
+                      ₹{product.actualPrice}
                     </span>
                   )}
                 </div>
@@ -472,16 +472,16 @@ function ProductsTab() {
               </label>
               <input
                 type="number"
-                name="price"
+                name="actualPrice"
                 step="0.01"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 placeholder="0.00"
-                value={newProductForm.price}
+                value={newProductForm.actualPrice}
                 onChange={handleNewProductInputChange}
                 required
               />
               {
-                newProductForm.price<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
+                newProductForm.actualPrice<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
               }
             </div>
             <div>
@@ -661,15 +661,15 @@ function ProductsTab() {
               </label>
               <input
                 type="number"
-                name="price"
+                name="actualPrice"
                 step="0.01"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 placeholder="0.00"
-                value={editProductForm.price}
+                value={editProductForm.actualPrice}
                 onChange={handleEditProductInputChange}
                 required
               />{
-                editProductForm.price<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
+                editProductForm.actualPrice<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
               }
             </div>
             <div>

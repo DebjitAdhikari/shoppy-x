@@ -24,7 +24,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
     category: "",
     inStock:null,
     featuredProduct:"",
-    price: "",
+    actualPrice: "",
     discount: "",
     description: "",
     availableSize: "",
@@ -71,7 +71,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
       category: product.category,
       inStock: product.inStock,
       featuredProduct: product.featuredProduct? "yes":"no",
-      price: product.price,
+      actualPrice: product.actualPrice,
       discount: product.discount,
       description: product.description,
       availableSize: product.availableSize,
@@ -104,6 +104,8 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   // Submit edited product
   async function handleEditProductSubmit(e) {
     e.preventDefault();
+    if(editProductForm.discount<0 || editProductForm.actualPrice<0||editProductForm.inStock<0)
+      return
     setIsUpdating(true)
     console.log(editProductImages)
     console.log(editProductForm)
@@ -117,7 +119,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
 
   formData.append("featuredProduct", editProductForm.featuredProduct==="yes");
   formData.append("features", editProductForm.features);
-  formData.append("price", editProductForm.price);
+  formData.append("actualPrice", editProductForm.actualPrice);
   editProductImages.forEach(img=>{
     if(img.file)
       formData.append("images",img.file)
@@ -213,11 +215,11 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
                 </h3>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="text-lg font-bold text-indigo-600">
-                  ₹{(product.price * (1 - product.discount / 100)).toFixed(0)}
+                  ₹{(product.finalPrice)}
                   </span>
                   {product.discount > 0 && (
                     <span className="text-sm text-gray-500 line-through">
-                      ₹{product.price}
+                      ₹{product.actualPrice}
                     </span>
                   )}
                 </div>
@@ -343,14 +345,17 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
               </label>
               <input
                 type="number"
-                name="price"
+                name="actualPrice"
                 step="0.01"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 placeholder="0.00"
-                value={editProductForm.price}
+                value={editProductForm.actualPrice}
                 onChange={handleEditProductInputChange}
                 required
               />
+              {
+                editProductForm.actualPrice<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
+              }
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -366,6 +371,9 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
                 required
               />
             </div>
+            {
+                editProductForm.discount<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
+              }
           </div>
           {/* instock */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -382,6 +390,9 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
                 onChange={handleEditProductInputChange}
                 required
               />
+              {
+                editProductForm.inStock<0 && <p className="text-red-500">Price can&apos;t be a negetive value</p>
+              }
             </div>
             </div>
           {/* size  */}
@@ -428,6 +439,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
           <button
             type="submit"
             className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              disabled={isUpdating}
           >
            {isUpdating?"Updating...":"Update Product"} 
           </button>

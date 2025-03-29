@@ -13,7 +13,7 @@ router.route("/deleteAll")
     .delete(productsController.deleteAllProduct)
 
 // router.route("/featuredUpdate")
-//     .patch(productsController.updateExisting)
+//     .patch(productsController.updateProducts)
 router.route("/:id")
     .get(productsController.getProduct)
     .patch(upload.array("images",5),productsController.updateProduct)

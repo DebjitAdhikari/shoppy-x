@@ -91,15 +91,15 @@ const ProductDetails = () => {
   async function fetchProductDetails() {
     setIsProductNotFound(false);
     const { data } = await getProductById(id);
-    console.log(data.status);
-    if (data.status === "error"){
+    // console.log(data.status);
+    if (data.status === "error") {
       setIsProductNotFound(true);
       setIsProductLoading(false);
-      return
+      return;
     }
-      
+
     setIsProductLoading(false);
-    setProduct(data)
+    setProduct(data);
   }
   useEffect(() => {
     fetchProductDetails();
@@ -114,21 +114,25 @@ const ProductDetails = () => {
       ) : (
         <>
           {isProductNotFound ? (
-            <ErrorPage customErrorMessage={" The product you are looking for doesn't exist"} />
+            <ErrorPage
+              customErrorMessage={
+                " The product you are looking for doesn't exist"
+              }
+            />
           ) : (
             <div
               ref={topRef}
               className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
                 {/* Image Gallery */}
                 <div className="relative">
-                  <div className="relative h-[500px] rounded-xl overflow-hidden">
+                  <div className="relative rounded-xl overflow-hidden">
                     {product?.images?.length > 0 && (
                       <img
                         src={product?.images[currentImage].url}
                         alt={product?.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-[400px] sm:h-[500px]  object-cover "
                       />
                     )}
                     <button
@@ -149,7 +153,7 @@ const ProductDetails = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentImage(index)}
-                        className={`relative h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden ${
+                        className={`relative h-16 w-16 md:h-20 md:w-20 flex-shrink-0 rounded-lg overflow-hidden ${
                           currentImage === index ? "ring-2 ring-blue-500" : ""
                         }`}
                       >
@@ -165,69 +169,71 @@ const ProductDetails = () => {
 
                 {/* Product Info */}
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                     {product.name}
                   </h1>
 
-                  <div className="flex items-center space-x-4 mb-6">
+                  <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-5 w-5 ${
+                          className={`h-4 w-4 md:h-5 md:w-5 ${
                             i < Math.floor(product.rating)
                               ? "text-yellow-400 fill-current"
                               : "text-gray-300"
                           }`}
                         />
                       ))}
-                      <span className="ml-2 text-gray-600">
+                      <span className="ml-2 text-gray-600 text-sm md:text-base">
                         {product.rating}
                       </span>
                     </div>
-                    <span className="text-gray-600">
+                    <span className="text-gray-600 text-sm md:text-base">
                       ({product.reviews?.length} reviews)
                     </span>
                   </div>
 
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-4">
-                      <span className="text-3xl font-bold text-gray-900">
-                        ₹{discountedPrice.toFixed(2)}
+                  <div className="mb-4 md:mb-6">
+                    <div className="flex items-center space-x-3 md:space-x-4">
+                      <span className="text-2xl md:text-3xl font-bold text-gray-900">
+                        ₹{product.finalPrice}
                       </span>
                       {product.discount > 0 && (
                         <>
-                          <span className="text-xl text-gray-500 line-through">
-                            ₹{product.price.toFixed(2)}
+                          <span className="text-lg md:text-xl text-gray-500 line-through">
+                            ₹{product.actualPrice}
                           </span>
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-md text-sm font-semibold">
+                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-md text-xs md:text-sm font-semibold">
                             {product.discount}% OFF
                           </span>
                         </>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-2">
+                    <p className="text-sm md:text-base text-gray-600 mt-2">
                       Only {product.inStock} items left!
                     </p>
                   </div>
 
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">Description</h3>
-                    <p className="text-gray-600 whitespace-pre-line">
+                  <div className="mb-4 md:mb-6">
+                    <h3 className="text-lg font-semibold mb-2 md:mb-3">
+                      Description
+                    </h3>
+                    <p className="text-gray-600 text-sm md:text-base whitespace-pre-line">
                       {product?.description}
                     </p>
                   </div>
 
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">
+                  <div className="mb-4 md:mb-6">
+                    <h3 className="text-lg font-semibold mb-2 md:mb-3">
                       {product.availableSize && "Select Size"}
                     </h3>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2 md:gap-3">
                       {product.availableSize?.split(",").map((size) => (
                         <button
                           key={size}
                           onClick={() => setSelectedSize(size)}
-                          className={`px-4 py-2 rounded-lg border ${
+                          className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg border text-sm md:text-base ${
                             selectedSize === size
                               ? "border-blue-500 bg-blue-50 text-blue-700"
                               : "border-gray-200 hover:border-gray-300"
@@ -239,46 +245,44 @@ const ProductDetails = () => {
                     </div>
                   </div>
 
-                  <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-3">
+                  <div className="mb-6 md:mb-8">
+                    <h3 className="text-lg font-semibold mb-2 md:mb-3">
                       Product Features
                     </h3>
-                    <ul className="space-y-2">
+                    <ul className="space-y-1 md:space-y-2">
                       {product.features?.split(",").map((feature, index) => (
                         <li
                           key={index}
-                          className="flex items-center text-gray-600"
+                          className="flex items-center text-gray-600 text-sm md:text-base"
                         >
-                          <Shield className="h-5 w-5 text-green-500 mr-2" />
+                          <Shield className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2" />
                           {feature}
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="space-y-4">
-                    <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
+                  <div className="space-y-3 md:space-y-4">
+                    <button className="w-full bg-blue-600 text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
                       Add to Cart
                     </button>
-                    <button className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition duration-300">
+                    <button className="w-full bg-gray-900 text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-gray-800 transition duration-300">
                       Buy Now
                     </button>
                   </div>
 
-                  <div className="mt-8 grid grid-cols-3 gap-4">
-                    <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                      <Truck className="h-6 w-6 text-blue-600 mr-2" />
-                      <span className="text-sm font-medium">Free Delivery</span>
+                  <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+                    <div className="flex items-center justify-center p-3 md:p-4 bg-gray-50 rounded-lg text-xs md:text-sm">
+                      <Truck className="h-5 w-5 md:h-6 md:w-6 text-blue-600 mr-2" />
+                      Free Delivery
                     </div>
-                    <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                      <RefreshCw className="h-6 w-6 text-blue-600 mr-2" />
-                      <span className="text-sm font-medium">7 Days Return</span>
+                    <div className="flex items-center justify-center p-3 md:p-4 bg-gray-50 rounded-lg text-xs md:text-sm">
+                      <RefreshCw className="h-5 w-5 md:h-6 md:w-6 text-blue-600 mr-2" />
+                      7 Days Return
                     </div>
-                    <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                      <Shield className="h-6 w-6 text-blue-600 mr-2" />
-                      <span className="text-sm font-medium">
-                        Quality Product
-                      </span>
+                    <div className="flex items-center justify-center p-3 md:p-4 bg-gray-50 rounded-lg text-xs md:text-sm">
+                      <Shield className="h-5 w-5 md:h-6 md:w-6 text-blue-600 mr-2" />
+                      Quality Product
                     </div>
                   </div>
                 </div>

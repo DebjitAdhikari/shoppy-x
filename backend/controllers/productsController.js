@@ -109,7 +109,7 @@ export async function updateProduct(req,res,next){
       }
       //1)at first we will delete those image that dont need anymore
       //2)upload the new image and merge with the existing image of products
-      const {name,availableSize,category,inStock,imageUrls,description,discount,featuredProduct,features,price} = req.body
+      const {name,availableSize,category,inStock,imageUrls,description,discount,featuredProduct,features,actualPrice} = req.body
       let allProductImages=product.images
       const imagesToBeDeleted= allProductImages.filter(img=>!imageUrls.includes(img.url))
       const imagesToBeStayed = allProductImages.filter(img=>imageUrls.includes(img.url))
@@ -142,6 +142,7 @@ export async function updateProduct(req,res,next){
       }
       //merge all products images urls
       allProductImages = [...imagesToBeStayed,...uploadedImageUrls]
+      const finalPrice = Math.round(actualPrice-(actualPrice*discount)/100)
       const updateProduct = {
         name,
         availableSize,
@@ -151,7 +152,8 @@ export async function updateProduct(req,res,next){
         discount,
         featuredProduct:featuredProduct==="true",
         features,
-        price,
+        actualPrice,
+        finalPrice,
         images: allProductImages
       }
       const updatedProductResult = await Product.findByIdAndUpdate(req.params.id,updateProduct,{
@@ -191,5 +193,38 @@ export async function deleteAllProduct(req,res,next){
 //     })
 // } catch (error) {
 //     console.error("Error updating products:", error);
+// }
+// }
+
+// export async function updateProducts(req,res,next) {
+// try {
+  
+
+//   const products = await Product.find();
+
+//   const allProduct = await Product.updateMany(
+//     { price: { $exists: true } }, 
+//     [
+//       {
+//         $set: {
+//           actualPrice: "$price",
+//           finalPrice: {
+//             $round: [{ $subtract: ["$price", { $multiply: ["$price", { $divide: ["$discount", 100] }] }] }, 0]
+//           }
+//         },
+//       },
+//       { $unset: "price" }
+//     ]
+//   );
+//   console.log("✅ Bulk update completed!");
+  
+
+//   console.log("✅ All products updated: 'price' → 'actualPrice' & added 'finalPrice'!");
+//   res.status(200).json({
+//     status:"success",
+//     data:allProduct
+//   })
+// } catch (err) {
+//   next(err)
 // }
 // }

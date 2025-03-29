@@ -21,7 +21,7 @@ function FeaturedProduts() {
     return (
         <section className="py-16 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Products</h2>
+        <h2 className="sm:text-3xl text-xl font-bold text-gray-900 mb-8">Featured Products</h2>
         {
           isProductLoading?<Loader></Loader>:
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -29,7 +29,7 @@ function FeaturedProduts() {
           
           products.map((product) => (
             <div key={product._id} className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow duration-300">
-              <div className="relative h-64">
+              <div className="relative aspect-[4/3]">
                 <img
                   src={product.images[0].url}
                   alt={product.name}
@@ -51,7 +51,7 @@ function FeaturedProduts() {
                   <span className="text-sm text-gray-600 ml-2">{product.rating}</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
-                <p className="text-gray-600 mb-4">₹{product.price}</p>
+                <p className="text-gray-600 mb-4">₹{product.finalPrice}</p>
                 <button
                   onClick={() => navigate(`/products/${product._id}`)}
                   className="w-full bg-gray-900 text-white py-2 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800 transition duration-300"
