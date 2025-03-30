@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import getAllBanners from "../services/homebanners/getAllBanners.js";
 import Loader from "./Loader.jsx";
+import scrollToPageTop from "../utils/scrollToPageTop.js";
 
 
 function HeroSlider() {
@@ -12,6 +13,7 @@ function HeroSlider() {
       setSlides(data)
       //set the current slide to 0
       setCurrentSlide(0)
+      scrollToPageTop()
     }
     //useEffect for getting banners
     useEffect(()=>{

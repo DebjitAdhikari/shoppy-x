@@ -15,9 +15,17 @@ export async function getProductsByCategory(req,res,next){
     try {
        
       const {category}=req.params
-      const products = await Product.find({category})
+      const page = parseInt(req.query.page) || 1
+      console.log('query',page)
+      const productsPerPage = 12 //per page how many products
+      const skipAmount = (page-1)*productsPerPage
+      const products = await Product.find({category}).skip(skipAmount).limit(productsPerPage)
+      const totalResults = await Product.countDocuments({category})
+  
       res.status(200).json({
         status:"success",
+        totalResults,
+        totalPages: Math.ceil(totalResults/productsPerPage),
         data:products
       })
     } catch (err) {

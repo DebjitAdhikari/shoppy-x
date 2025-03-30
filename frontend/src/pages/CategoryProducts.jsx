@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { redirect, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Star, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import Product from '../components/Product';
 import getProductsByCategoryService from '../services/products/getProductsByCategoryService.js';
+import scrollToPageTop from '../utils/scrollToPageTop.js';
 
 
 
@@ -45,6 +46,10 @@ const filters = [
 
 const CategoryProducts = () => {
   const [products,setProducts]=useState([])
+  const [totalResults,setTotalResults] = useState(0)
+  const [totalPages,setTotalPages] = useState(0)
+  
+  const [theCurrentPage, setTheCurrentPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
@@ -103,25 +108,25 @@ const CategoryProducts = () => {
 
   const filteredProducts = filterProducts(products);
   const itemsPerPage = isMobile ? 10 : 15;
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const totalProductsPage = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // const paginatedProducts = filteredProducts.slice(
+  //   (currentPage - 1) * itemsPerPage,
+  //   currentPage * itemsPerPage
+  // );
 
-  const visiblePages = () => {
-    const delta = isMobile ? 1 : 2;
-    const range = [];
-    for (
-      let i = Math.max(1, currentPage - delta);
-      i <= Math.min(totalPages, currentPage + delta);
-      i++
-    ) {
-      range.push(i);
-    }
-    return range;
-  };
+  // const visiblePages = () => {
+  //   const delta = isMobile ? 1 : 2;
+  //   const range = [];
+  //   for (
+  //     let i = Math.max(1, currentPage - delta);
+  //     i <= Math.min(totalProductsPage, currentPage + delta);
+  //     i++
+  //   ) {
+  //     range.push(i);
+  //   }
+  //   return range;
+  // };
 
   const renderFilterCheckbox = (filter, option) => (
     <label key={option.value} className="flex items-center">
@@ -134,15 +139,37 @@ const CategoryProducts = () => {
       <span className="ml-2 text-gray-600">{option.label}</span>
     </label>
   );
+
+  const navigate = useNavigate()
+  //getting which category
   const {category} = useParams()
+  //for gettin query params
+  const [searchParams,setSearchParams]=useSearchParams()
+  
+  //to have query params in url
+  function restrictParams(){
+    const pageParam= searchParams.get("page")
+    if(!pageParam){
+        navigate(`/categories/${category}?page=1`,{replace:true})
+        return
+      }
+    }
+  
   async function fetchProducts() {
-    const {data} = await getProductsByCategoryService(category)
-    setProducts(data)
+    const pageParam= searchParams.get("page")
+    const data = await getProductsByCategoryService(category,pageParam)
+    setTheCurrentPage(parseInt(pageParam))
+    setProducts(data.data)
+    setTotalResults(data.totalResults)
+    setTotalPages(data.totalPages)
     console.log(data)
+    scrollToPageTop()
   }
   useEffect(()=>{
+    //redirect user to have query page params
+    restrictParams()
     fetchProducts()
-  },[])
+  },[searchParams])
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
       {/* Header Section */}
@@ -233,7 +260,7 @@ const CategoryProducts = () => {
         {/* Products Grid */}
         <div className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {paginatedProducts?.map((product) => (
+            {products?.map((product) => (
               <Product key={product._id} product={product} />
             ))}
           </div>
@@ -248,24 +275,24 @@ const CategoryProducts = () => {
               >
                 Previous
               </button>
-              
-              {visiblePages().map((pageNum) => (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 sm:px-4 py-2 border rounded-lg ${
-                    currentPage === pageNum
-                      ? 'bg-gray-900 text-white'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              ))}
+              {
+                Array.from({length:totalPages},(_,i)=>(
+                  <button key={i+1}
+                  onClick={()=>{
+                    setSearchParams({page:i+1})
+                  }}
+                  className={
+                    `px-3 sm:px-4 py-2 border rounded-lg 
+                    ${theCurrentPage===i+1?"bg-gray-900 text-white"
+                    :"bg-gray-50 text-black"}`}>
+                    {i+1}
+                  </button>
+                ))
+              }
               
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
+                disabled={currentPage === totalProductsPage}
                 className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next

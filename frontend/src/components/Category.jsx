@@ -5,7 +5,7 @@ function Category({category}) {
     return (
         <Link
             key={category._id}
-            to={`/categories/${category.value}`}
+            to={`/categories/${category.value}?page=1`}
             className="group"
           >
             <div className="relative h-80 rounded-xl overflow-hidden">
