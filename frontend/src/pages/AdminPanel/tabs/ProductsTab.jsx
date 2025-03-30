@@ -13,11 +13,13 @@ import ImageUploadSection from "../common/ImageUploadSection";
 import updateProductService from "../../../services/products/updateProductService.js";
 import successToastMessage from "../../../utils/successToastMessage.js";
 import HomeAdminFeaturedProducts from "./adminComponents/AdminFeaturedProducts.jsx";
-import getAllProductsService from "../../../services/products/getAllProductsService.js";
 import getAllCategoriesService from "../../../services/categories/getAllCategoriesService.js";
 import createProductService from "../../../services/products/createProductService.js";
 import deleteProductService from "../../../services/products/deleteProductService.js";
 import selectEditCategory from "../../../utils/selectEditCategory.js";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import getProductsByPageService from "../../../services/products/getProductsByPageService.js";
+import getAllFeaturedProductsService from "../../../services/products/getAllFeaturedProductsService.js";
 
 function ProductsTab() {
   const [allProducts, setAllProducts] = useState([]);
@@ -30,6 +32,8 @@ function ProductsTab() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [totalPages,setTotalPages] = useState(1)
+  const [currentPage,setCurrentPage] = useState(1)
 
   // State for form management
   const [newProductForm, setNewProductForm] = useState({
@@ -206,7 +210,9 @@ function ProductsTab() {
     setShowAddProductModal(false);
     setNewProductImages([]);
     successToastMessage("New Product Added!")
-    fetchAllProducts()
+    // fetchAllProducts()
+    fetchAllFeaturedProducts()
+    fetchProductsByPage()
   };
 
   // Submit edited product
@@ -246,7 +252,9 @@ function ProductsTab() {
 
     setShowEditProductModal(false);
     setEditProductImages([]);
-    fetchAllProducts();
+    // fetchAllProducts();
+    fetchAllFeaturedProducts()
+    fetchProductsByPage()
   }
 
   // Delete product
@@ -261,7 +269,8 @@ function ProductsTab() {
     setIsDeleting(false)
     setShowDeleteModal(false);
     setItemToDelete(null);
-    fetchAllProducts()
+    fetchAllFeaturedProducts()
+    fetchProductsByPage()
     successToastMessage("Product Deleted Successfully!")
   };
 
@@ -271,34 +280,57 @@ function ProductsTab() {
 
     setShowDeleteModal(true);
   };
+  const [searchParams,setSearchParams]=useSearchParams()
+  const navigate = useNavigate()
 
-  //fetch all products
-  async function fetchAllProducts() {
-    const { data } = await getAllProductsService();
+  function restrictProductsParams(){
+    const page = searchParams.get("page")
+    console.log("the page",page)
+    if(!page)
+      navigate("/admin/products?page=1",{replace:true})
+  }
+
+  
+
+  //fetch featured products
+  async function fetchAllFeaturedProducts(){
+    const filteredProduct = await getAllFeaturedProductsService();
+    setFeaturedProducts(filteredProduct.data)// featured product after updateon not rendering properly
+  }
+  //fetch products by page
+  async function fetchProductsByPage() {
+    const page = searchParams.get("page")
+    setCurrentPage(parseInt(page))
+    const data = await getProductsByPageService(page);
     console.log("all Products", data);
-    //filtering out the featured products
-    const filteredProduct = data.filter((product) => product.featuredProduct);
-    setFeaturedProducts(filteredProduct);
-    setAllProducts(data);
+    setTotalPages(data.totalPages)
+  
+    setAllProducts(data.data)
   }
   async function fetchAllCategories() {
     const { data } = await getAllCategoriesService();
     setAllCategories(data);
   }
 
+  useEffect(()=>{
+    restrictProductsParams()
+    fetchProductsByPage()
+  },[searchParams])
+
   useEffect(() => {
+    restrictProductsParams()
     fetchAllCategories();
-    fetchAllProducts();
+    fetchAllFeaturedProducts()
+    fetchProductsByPage()
   }, []);
 
-  // Render method for image upload section
 
   return (
     <>
       <HomeAdminFeaturedProducts
         allCategories={allCategories}
         allProducts={featuredProducts}
-        fetchAllProducts={fetchAllProducts}
+        fetchAllProducts={fetchAllFeaturedProducts}
       ></HomeAdminFeaturedProducts>
       <section className="bg-white mt-4 rounded-2xl shadow-md p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
@@ -380,6 +412,45 @@ function ProductsTab() {
             </div>
           ))}
         </div>
+        {/* pagination */}
+        <div className="mt-8 sm:mt-12 flex justify-center">
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                onClick={() => {
+                  setSearchParams({page:currentPage-1})
+                }}
+                disabled={currentPage === 1}
+                className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              {
+                Array.from({length:totalPages},(_,i)=>(
+                  <button key={i+1}
+                  onClick={()=>{
+                    setSearchParams({page:i+1})
+                  }}
+                  className={
+                    `px-3 sm:px-4 py-2 border rounded-lg 
+                    ${currentPage===i+1?"bg-gray-900 text-white"
+                    :"bg-gray-50 text-black"}`}>
+                    {i+1}
+                  </button>
+                ))
+              }
+              
+              <button
+                // onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
+                onClick={() => {
+                  setSearchParams({page:currentPage+1})
+                }}
+                disabled={currentPage === totalPages}
+                className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
       </section>
 
       {/* Add Product Modal */}

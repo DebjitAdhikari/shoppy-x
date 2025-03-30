@@ -32,7 +32,6 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   });
 
   // Image states
-  const [newProductImages, setNewProductImages] = useState([]);
   const [editProductImages, setEditProductImages] = useState([]);
   // Item to delete state
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -69,7 +68,6 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
     setEditProductForm({
       id: product._id,
       name: product.name,
-      // category: product.category,
       category: selectEditCategory(allCategories,product),
       inStock: product.inStock,
       featuredProduct: product.featuredProduct? "yes":"no",
@@ -136,7 +134,6 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   setIsUpdating(false)
     setShowEditProductModal(false);
     setEditProductImages([]);
-    // fetchFeaturedProducts()
     fetchAllProducts()
   };
 
@@ -165,7 +162,6 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   
 
   useEffect(() => {
-    // fetchFeaturedProducts()
     setFeaturedProducts(allProducts)
     console.log("from child",allCategories)
   }, [allProducts,allCategories]);

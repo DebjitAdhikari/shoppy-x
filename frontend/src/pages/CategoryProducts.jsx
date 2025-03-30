@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { redirect, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Star, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import Product from '../components/Product';
+import Loader from "../components/Loader.jsx"
 import getProductsByCategoryService from '../services/products/getProductsByCategoryService.js';
 import scrollToPageTop from '../utils/scrollToPageTop.js';
+import NoProductsFound from '../components/NoProductsFound.jsx';
+import getCategoryByValueService from '../services/categories/getCategoryByValueService.js';
 
 
 
@@ -46,9 +49,10 @@ const filters = [
 
 const CategoryProducts = () => {
   const [products,setProducts]=useState([])
+  const [title,setTitle]=useState("")
   const [totalResults,setTotalResults] = useState(0)
   const [totalPages,setTotalPages] = useState(0)
-  
+  const [isLoading,setIsLoading] = useState(false)
   const [theCurrentPage, setTheCurrentPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('popular');
@@ -155,16 +159,27 @@ const CategoryProducts = () => {
       }
     }
   
+  async function fetchCategoryTitle(){
+    const data = await getCategoryByValueService(category)
+    // console.log("title",data)
+    setTitle(data.title)
+  }
+
   async function fetchProducts() {
     const pageParam= searchParams.get("page")
+    setIsLoading(true)
     const data = await getProductsByCategoryService(category,pageParam)
     setTheCurrentPage(parseInt(pageParam))
     setProducts(data.data)
     setTotalResults(data.totalResults)
     setTotalPages(data.totalPages)
     console.log(data)
+    setIsLoading(false)
     scrollToPageTop()
   }
+  useEffect(()=>{
+    fetchCategoryTitle()
+  },[])
   useEffect(()=>{
     //redirect user to have query page params
     restrictParams()
@@ -175,8 +190,8 @@ const CategoryProducts = () => {
       {/* Header Section */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-600 mt-1 sm:mt-2">{filteredProducts.length} results found</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
+          <p className="text-gray-600 mt-1 sm:mt-2">{totalResults} results found</p>
         </div>
         
         <div className="flex flex-wrap gap-3 items-center">
@@ -259,18 +274,32 @@ const CategoryProducts = () => {
 
         {/* Products Grid */}
         <div className="flex-1">
+          {
+            isLoading?
+            <div className=' h-[60vh]'>
+              <Loader></Loader>
+              </div>:
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {products?.map((product) => (
+            {
+            products?.map((product) => (
               <Product key={product._id} product={product} />
             ))}
           </div>
 
+          }
+          {
+            totalResults===0 && <NoProductsFound></NoProductsFound>
+          }
           {/* Pagination */}
+          {
+            totalPages>0&&
           <div className="mt-8 sm:mt-12 flex justify-center">
             <div className="flex flex-wrap justify-center gap-2">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                onClick={() => {
+                  setSearchParams({page:theCurrentPage-1})
+                }}
+                disabled={theCurrentPage === 1}
                 className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
@@ -291,14 +320,18 @@ const CategoryProducts = () => {
               }
               
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
-                disabled={currentPage === totalProductsPage}
+                // onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
+                onClick={() => {
+                  setSearchParams({page:theCurrentPage+1})
+                }}
+                disabled={theCurrentPage === totalPages}
                 className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
             </div>
           </div>
+          }
         </div>
       </div>
     </div>

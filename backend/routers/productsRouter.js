@@ -5,6 +5,8 @@ const router = express.Router()
 
 router.route("/getAll")
     .get(productsController.getAllProducts)
+router.route("/getLimitedProducts")
+    .get(productsController.getAllProductsByPage)
 router.route("/getAllFeaturedProducts")
     .get(productsController.getAllFeaturedProducts)
 router.route("/create")

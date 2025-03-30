@@ -2,9 +2,29 @@ import Product from "../models/productModel.js"
 import cloudinary from "../config/cloudinary.js"
 export async function getAllProducts(req,res,next){
     try {
+
       const products = await Product.find({})
       res.status(200).json({
         status:"success",
+        data:products
+      })
+    } catch (err) {
+      next(err)       
+    }
+}
+export async function getAllProductsByPage(req,res,next){
+    try {
+      const page =parseInt(req.query.page) || 1
+      // console.log("thepage",req.query)
+      const maxProductsPerPage = 12
+      const skipAmount = (page - 1)*maxProductsPerPage
+      const products = await Product.find({}).skip(skipAmount).limit(maxProductsPerPage)
+      const totalResults = await Product.countDocuments({})
+      const totalPages = Math.ceil(totalResults/maxProductsPerPage)
+      res.status(200).json({
+        status:"success",
+        totalResults,
+        totalPages,
         data:products
       })
     } catch (err) {
@@ -16,7 +36,7 @@ export async function getProductsByCategory(req,res,next){
        
       const {category}=req.params
       const page = parseInt(req.query.page) || 1
-      console.log('query',page)
+      // console.log('query',page)
       const productsPerPage = 12 //per page how many products
       const skipAmount = (page-1)*productsPerPage
       const products = await Product.find({category}).skip(skipAmount).limit(productsPerPage)
