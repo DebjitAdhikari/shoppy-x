@@ -8,7 +8,7 @@ function Product({ product }) {
   return (
     <div
       key={product._id}
-      onClick={() => navigate(`/products/${product._id}`)}
+      onClick={() => navigate(`/product/${product._id}`)}
       className="bg-white rounded-xl shadow-md hover:cursor-pointer overflow-hidden group transition-transform duration-300 hover:scale-105"
     >
       <div className="relative aspect-square overflow-hidden">

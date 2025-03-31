@@ -1,5 +1,7 @@
 import Product from "../models/productModel.js"
 import cloudinary from "../config/cloudinary.js"
+import huggingFaceApi from "../config/hugginFaceApi.js"
+import { model } from "mongoose"
 export async function getAllProducts(req,res,next){
     try {
 
@@ -118,6 +120,72 @@ export async function getProduct(req,res,next){
       next(err)
     }
 }
+export async function getProductsByQuery(req,res,next){
+    try {
+      const {query,page=1} = req.query
+      if(!query || !page)
+        return res.status(400).json({
+          status:"failed",
+          message:"query parameter or page required"
+        })
+      const queryEmbedding=await huggingFaceApi.featureExtraction({
+        model:"sentence-transformers/all-MiniLM-L6-v2",
+        inputs:query
+      })
+      const maxProductsPerPage=12
+      const skipAmount = (parseInt(page)-1)*maxProductsPerPage
+      const results = await Product.aggregate([
+        {
+          $vectorSearch:{
+            index:"vector_index",
+            path:"vector",
+            queryVector:queryEmbedding,
+            numCandidates:20,
+            limit:20,
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { category: new RegExp(query, "i") }, // Match by category
+              { name: new RegExp(query, "i") }, // Match by product name
+              { description: new RegExp(query,"i")}//match by description
+            ],
+          },
+        },
+        {
+          $facet:{
+            metadata:[{ $count:"total" }],
+            data:[
+              { $skip:skipAmount },
+              { $limit:maxProductsPerPage },
+              { $project:{ vector:0 }}, //exclude vector field
+            ]
+          }
+        }
+      ])
+      if(!results)
+        return res.status(404).json({
+          status:"failed",
+          message:"No results found"
+        })
+        const totalResults = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0;
+        if(totalResults===0)
+        return res.status(400).json({
+          status: "failed",
+        message: "No results found",
+      })
+
+      res.status(200).json({
+        status:"success",
+        totalResults,
+        totalPages: Math.ceil(totalResults/maxProductsPerPage),
+        data:results[0].data
+      })
+    } catch (err) {
+      next(err)
+    }
+}
 export async function deleteProduct(req,res,next){
     try {
       
@@ -183,26 +251,40 @@ export async function updateProduct(req,res,next){
       }
       //merge all products images urls
       allProductImages = [...imagesToBeStayed,...uploadedImageUrls]
-      const finalPrice = Math.round(actualPrice-(actualPrice*discount)/100)
-      const updateProduct = {
-        name,
-        availableSize,
-        category,
-        inStock,
-        description,
-        discount,
-        featuredProduct:featuredProduct==="true",
-        features,
-        actualPrice,
-        finalPrice,
-        images: allProductImages
-      }
-      const updatedProductResult = await Product.findByIdAndUpdate(req.params.id,updateProduct,{
-        new:true
-      })
+      // const finalPrice = Math.round(actualPrice-(actualPrice*discount)/100)
+      // const updateProduct = {
+      //   name,
+      //   availableSize,
+      //   category,
+      //   inStock,
+      //   description,
+      //   discount,
+      //   featuredProduct:featuredProduct==="true",
+      //   features,
+      //   actualPrice,
+      //   finalPrice,
+      //   images: allProductImages
+      // }
+      // const updatedProductResult = await Product.findByIdAndUpdate(req.params.id,updateProduct,{
+      //   new:true
+      // })
+      product.name = name;
+    product.availableSize = availableSize;
+    product.category = category;
+    product.inStock = inStock;
+    product.description = description;
+    product.discount = discount;
+    product.featuredProduct = featuredProduct === "true";
+    product.features = features;
+    product.actualPrice = actualPrice;
+    product.finalPrice = Math.round(actualPrice - (actualPrice * discount) / 100);
+    product.images = allProductImages;
+
+    //now save
+    await product.save()
       res.status(200).json({
         status:"success",
-        data:updatedProductResult
+        data:product
       })
       
     } catch (err) {      
@@ -269,3 +351,71 @@ export async function deleteAllProduct(req,res,next){
 //   next(err)
 // }
 // }
+// export async function bulkUpdateVectors() {  
+//   try {  
+//     console.log("🔄 Fetching products without valid vectors...");  
+
+//     // Find products where vector does not exist OR is empty
+//     const products = await Product.find({
+//       $or: [{ vector: { $exists: false } }, { vector: { $size: 0 } }],
+//     }).select("+description +name +category");  
+
+//     if (products.length === 0) {  
+//       console.log("✅ All products already have valid vectors. No update needed.");  
+//       return;  
+//     }  
+
+//     console.log(`🔄 Found ${products.length} products to update.`);  
+
+//     // Process updates in parallel (limit concurrency to prevent API overload)
+//     const updatePromises = products.map(async (product) => {  
+//       try {  
+//         const name = product.name || "";  
+//         const description = product.description || "";  
+//         const category = product.category || "";  
+
+//         const embeddings = await huggingFaceApi.featureExtraction({  
+//           model: "sentence-transformers/all-MiniLM-L6-v2",  
+//           inputs: `name: ${name} description: ${description} category: ${category}`,  
+//         });  
+
+//         product.vector = embeddings;  
+//         await product.save();  
+
+//         console.log(`✅ Updated product: ${product.name}`);  
+//       } catch (err) {  
+//         console.error(`❌ Error updating product ${product.name}:`, err);  
+//       }  
+//     });  
+
+//     // Wait for all updates to finish  
+//     await Promise.all(updatePromises);  
+//     console.log("🎉 Bulk update completed!");  
+
+//   } catch (error) {  
+//     console.error("❌ Bulk update failed:", error);  
+//   } 
+//   // finally {  
+//   //   // ❌ Don't close if running inside app  
+//   //   if (process.env.STANDALONE_SCRIPT === "true") {  
+//   //     mongoose.connection.close();  
+//   //   }  
+//   // }  
+// }  
+
+// bulkUpdateVectors()
+
+// async function removeVectorsFromProducts() {
+//   try {
+   
+//     const result = await Product.updateMany({}, { $unset: { vector: 1 } });
+
+//     console.log(`✅ Successfully removed vectors from ${result.modifiedCount} products.`);
+    
+//     mongoose.connection.close();
+//   } catch (error) {
+//     console.error("❌ Error removing vectors:", error);
+//     mongoose.connection.close();
+//   }
+// }
+// removeVectorsFromProducts();

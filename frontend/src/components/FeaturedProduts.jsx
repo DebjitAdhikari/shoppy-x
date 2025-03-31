@@ -1,13 +1,12 @@
 import { ArrowRight, Star } from "lucide-react";
 import { useEffect,useState } from "react";
-import { useNavigate } from "react-router-dom"
 import Loader from "./Loader.jsx";
 import getAllFeaturedProductsService from "../services/products/getAllFeaturedProductsService.js";
+import Product from "./Product.jsx";
 
 function FeaturedProduts() {
     const [products,setProducts]=useState([])
     const [isProductLoading,setIsProductLoading]=useState(true)
-    const navigate =useNavigate()
     async function fetchAllProducts(){
       
       const {data} = await getAllFeaturedProductsService()
@@ -28,39 +27,7 @@ function FeaturedProduts() {
           {
           
           products.map((product) => (
-            <div key={product._id} className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow duration-300">
-              <div className="relative aspect-[4/3]">
-                <img
-                  src={product.images[0].url}
-                  alt={product.name}
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-4">
-                <div className="flex items-center space-x-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(product.rating)
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-gray-600 ml-2">{product.rating}</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
-                <p className="text-gray-600 mb-4">₹{product.finalPrice}</p>
-                <button
-                  onClick={() => navigate(`/products/${product._id}`)}
-                  className="w-full bg-gray-900 text-white py-2 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800 transition duration-300"
-                >
-                  <span>View Details</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+            <Product key={product._id} product={product}></Product>
           ))}
         </div>
         }

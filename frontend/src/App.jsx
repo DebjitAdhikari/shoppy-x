@@ -23,6 +23,7 @@ import OffersTab from './pages/AdminPanel/tabs/OffersTab';
 import OrdersTab from './pages/AdminPanel/tabs/OrdersTab';
 import ContactTab from './pages/AdminPanel/tabs/ContactTab';
 import AdminLogin from './pages/AdminPanel/tabs/AdminLogin';
+import SearchedProducts from './pages/SearchedProducts';
 
 
 // const router=createBrowserRouter([
@@ -88,8 +89,12 @@ const router = createBrowserRouter([
         element:<Signup></Signup>
       },
       {
-        path:"/products/:id",
+        path:"/product/:id",
         element:<ProductDetails></ProductDetails>,
+      },
+      {
+        path:"/products",
+        element:<SearchedProducts></SearchedProducts>,
       },
       {
         path:"/loader",
