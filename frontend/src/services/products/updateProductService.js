@@ -3,7 +3,10 @@ export default async function updateProductService(id,formData){
     try {
       const {data} = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`,
         formData,
-        { headers:{"Content-Type":"multipart/form-data"}}
+        { 
+          headers:{"Content-Type":"multipart/form-data"},
+          withCredentials: true
+      }
       )
       return data
     } catch (err) {
