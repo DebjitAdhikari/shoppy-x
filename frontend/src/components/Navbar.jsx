@@ -235,7 +235,10 @@ const Navbar = () => {
                     } transition-all duration-300 px-4 py-2 rounded-l-full border border-r-0 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   />
                   <button 
-                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    onClick={() => {
+                      setShowSearchSuggestions(false)
+                      setIsSearchOpen(!isSearchOpen)
+                    }}
                     className="p-2 hover:bg-gray-100 rounded-full"
                   >
                     <Search className="h-5 w-5 text-gray-600" />
