@@ -160,7 +160,7 @@ const SearchedProducts = () => {
     setIsLoading(true)
     const pageParam = searchParams.get("page");
     const queryParam = searchParams.get("query");
-
+    setTheCurrentPage(parseInt(pageParam))
     const data = await getProductsByQueryService(queryParam,pageParam)
     // console.log("found",data)
     if(data.status==="failed"){
@@ -303,7 +303,7 @@ const SearchedProducts = () => {
               <div className="flex flex-wrap justify-center gap-2">
                 <button
                   onClick={() => {
-                    setSearchParams({ page: theCurrentPage - 1 });
+                    setSearchParams({ query: searchParams.get("query"),page: theCurrentPage - 1 });
                   }}
                   disabled={theCurrentPage === 1}
                   className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -314,7 +314,8 @@ const SearchedProducts = () => {
                   <button
                     key={i + 1}
                     onClick={() => {
-                      setSearchParams({ page: i + 1 });
+                      
+                      setSearchParams({ query: searchParams.get("query"), page: i + 1 });
                     }}
                     className={`px-3 sm:px-4 py-2 border rounded-lg 
                     ${
@@ -328,9 +329,8 @@ const SearchedProducts = () => {
                 ))}
 
                 <button
-                  // onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
                   onClick={() => {
-                    setSearchParams({ page: theCurrentPage + 1 });
+                    setSearchParams({ query: searchParams.get("query"),page: theCurrentPage + 1 });
                   }}
                   disabled={theCurrentPage === totalPages}
                   className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
