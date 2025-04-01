@@ -3,6 +3,8 @@ import { ShoppingCart, Menu, X, Search, User, ChevronDown, Trash2, ArrowRight } 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Cart from './Cart';
 import checkLogin from '../services/users/checkLogin.js';
+import getProductsByQueryService from '../services/products/getProductsByQueryService.js';
+import getSearchSuggestionsService from '../services/products/getSearchSuggestionsService.js';
 
 const categories = [
   {
@@ -61,24 +63,17 @@ const cartItems = [
   }
 ];
 
-// Mock search suggestions
-const searchSuggestions = [
-  { id: 1, name: 'Nike Air Max', category: 'Shoes' },
-  { id: 2, name: 'Samsung Galaxy S24', category: 'Electronics' },
-  { id: 3, name: 'Levi\'s 501 Jeans', category: 'Clothing' },
-  { id: 4, name: 'Apple MacBook Pro', category: 'Laptops' },
-  { id: 5, name: 'Sony Headphones', category: 'Audio' },
-  { id: 6, name: 'Adidas Ultraboost', category: 'Shoes' },
-];
+
 
 const Navbar = () => {
+  const [searchSuggestions,setSearchSuggestions] = useState([])
+  const [noResults,setNoResults] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState(searchSuggestions);
   const [isLoggedIn,setIsLoggedIn]=useState(false)
   const navigate = useNavigate();
   const location = useLocation();
@@ -97,24 +92,23 @@ const Navbar = () => {
   useEffect(()=>{
     checkIsLoggedIn()
   },[])
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchQuery) {
-        const filtered = searchSuggestions.filter(item =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        setFilteredSuggestions(filtered);
-        setShowSearchSuggestions(true);
-      } else {
-        setShowSearchSuggestions(false);
+ 
+  useEffect(()=>{
+    if(!searchQuery || searchQuery.length<3)
+      return
+    const timer = setTimeout(async ()=>{
+
+      const data = await getSearchSuggestionsService(searchQuery,1)
+      if(data.status==="success"){
+        setSearchSuggestions(data.data)
+        setShowSearchSuggestions(true)
+      }else{
+        setShowSearchSuggestions(false)
       }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
+      console.log(data)
+    },300)
+    return ()=> clearTimeout(timer)
+  },[searchQuery])
   // Close search suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -136,6 +130,16 @@ const Navbar = () => {
   const isActivePath = (path) => {
     return location.pathname === path;
   };
+  // for showing products by serach results
+  async function searchQuerySubmit(e,type="onsubmit"){
+    if(type==="onsumbit")
+      e.preventDefault()
+    if(!searchQuery)
+     return
+    setShowSearchSuggestions(false)
+    navigate(`/products?query=${searchQuery}&page=1`)
+
+  }
 
   return (
     <>
@@ -220,7 +224,7 @@ const Navbar = () => {
 
             <div className="hidden md:flex items-center space-x-4">
               <div id="search-container" className="relative">
-                <div className="flex items-center">
+                <div onKeyDown={(e)=>e.key==="Enter" && searchQuerySubmit(e,"usingkeydown")} className="flex items-center">
                   <input
                     type="text"
                     placeholder="Search products..."
@@ -240,26 +244,30 @@ const Navbar = () => {
 
                 {/* Search Suggestions */}
                 {showSearchSuggestions && searchQuery && (
-                  <div className="absolute top-full left-0 w-full mt-1 bg-white rounded-lg shadow-lg py-2 z-50">
-                    {filteredSuggestions.map((suggestion) => (
+                  <div className="absolute top-full -left-5 w-[300px] mt-1 bg-white rounded-lg shadow-lg py-2 z-50">
+                    {searchSuggestions.map((product) => (
                       <div
-                        key={suggestion.id}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        key={product._id}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
                         onClick={() => {
-                          setSearchQuery(suggestion.name);
+                          window.location.href = `/product/${product._id}`;
                           setShowSearchSuggestions(false);
                         }}
                       >
-                        <div className="text-sm font-medium text-gray-900">
-                          {suggestion.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          in {suggestion.category}
+                        <img
+                          src={product.images[0].url}
+                          alt={product.name}
+                          className="w-10 h-10 object-cover rounded-md mr-3"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                          {/* <div className="text-xs text-gray-500">in {product.category}</div> */}
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
+
               </div>
 
               <Link 
@@ -325,29 +333,46 @@ const Navbar = () => {
           {isSearchOpen && (
             <div className="md:hidden pb-4">
               <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {showSearchSuggestions && searchQuery && (
+                <form onSubmit={(e)=>searchQuerySubmit(e,"onsumbit")} className='relative'>
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button className='absolute right-1 top-1 bg-blue-500 rounded-full p-2 text-white hover:bg-blue-600 transition-colors duration-200'>
+                    <Search className="h-5 w-5" />
+                  </button>
+                  </form>
+                  {showSearchSuggestions && searchQuery && (
                   <div className="absolute top-full left-0 w-full mt-1 bg-white rounded-lg shadow-lg py-2 z-50">
-                    {filteredSuggestions.map((suggestion) => (
+                    {searchSuggestions.map((product) => (
+                      
                       <div
-                        key={suggestion.id}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                        onClick={() => {
-                          setSearchQuery(suggestion.name);
+                        key={product._id}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation(); 
+                          window.location.href = `/product/${product._id}`;
+                          setIsSearchOpen(false); 
+                          setShowSearchSuggestions(false);
+                        }}
+                        onTouchEnd={(e) => { // Add touch handler
+                          e.stopPropagation();
+                          window.location.href= `/product/${product._id}`;
+                          setIsSearchOpen(false);
                           setShowSearchSuggestions(false);
                         }}
                       >
-                        <div className="text-sm font-medium text-gray-900">
-                          {suggestion.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          in {suggestion.category}
+                        <img
+                          src={product.images[0].url}
+                          alt={product.name}
+                          className="w-10 h-10 object-cover rounded-md mr-3"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                          {/* <div className="text-xs text-gray-500">in {product.category}</div> */}
                         </div>
                       </div>
                     ))}

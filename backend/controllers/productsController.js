@@ -186,6 +186,76 @@ export async function getProductsByQuery(req,res,next){
       next(err)
     }
 }
+export async function getSearchSuggestions(req,res,next){
+    try {
+      const {query,page=1} = req.query
+      if(!query || !page)
+        return res.status(400).json({
+          status:"failed",
+          message:"query parameter or page required"
+        })
+      const queryEmbedding=await huggingFaceApi.featureExtraction({
+        model:"sentence-transformers/all-MiniLM-L6-v2",
+        inputs:query
+      })
+      const maxProductsPerPage=5
+      const skipAmount = (parseInt(page)-1)*maxProductsPerPage
+      const results = await Product.aggregate([
+        {
+          $vectorSearch:{
+            index:"vector_index",
+            path:"vector",
+            queryVector:queryEmbedding,
+            numCandidates:20,
+            limit:20,
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { category: new RegExp(query, "i") }, // Match by category
+              { name: new RegExp(query, "i") }, // Match by product name
+              { description: new RegExp(query,"i")}//match by description
+            ],
+          },
+        },
+        {
+          $facet:{
+            metadata:[{ $count:"total" }],
+            data:[
+              { $skip:skipAmount },
+              { $limit:maxProductsPerPage },
+              { 
+                $project:{ 
+                  _id:1,
+                  name:1,
+                  images:1,
+                }
+              }, //exclude vector field
+            ]
+          }
+        }
+      ])
+      if(!results)
+        return res.status(404).json({
+          status:"failed",
+          message:"No results found"
+        })
+        const totalResults = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0;
+        if(totalResults===0)
+        return res.status(400).json({
+          status: "failed",
+        message: "No results found",
+      })
+
+      res.status(200).json({
+        status:"success",
+        data:results[0].data
+      })
+    } catch (err) {
+      next(err)
+    }
+}
 export async function deleteProduct(req,res,next){
     try {
       

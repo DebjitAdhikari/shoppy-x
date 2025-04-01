@@ -12,6 +12,7 @@ import getProductsByCategoryService from "../services/products/getProductsByCate
 import scrollToPageTop from "../utils/scrollToPageTop.js";
 import NoProductsFound from "../components/NoProductsFound.jsx";
 import getCategoryByValueService from "../services/categories/getCategoryByValueService.js";
+import getProductsByQueryService from "../services/products/getProductsByQueryService.js";
 
 const sortOptions = [
   { name: "Most Popular", value: "popular" },
@@ -134,43 +135,55 @@ const SearchedProducts = () => {
 
   const navigate = useNavigate();
   //getting which category
-  const { category } = useParams();
+  // const { query } = useParams();
   //for gettin query params
   const [searchParams, setSearchParams] = useSearchParams();
 
   //to have query params in url
   function restrictParams() {
     const pageParam = searchParams.get("page");
-    if (!pageParam) {
-      navigate(`/products/${category}?page=1`, { replace: true });
+    const queryParam = searchParams.get("query");
+    if (!pageParam || !queryParam) {
+      navigate(`/`, { replace: true });
       return;
     }
   }
 
-  async function fetchCategoryTitle() {
-    const data = await getCategoryByValueService(category);
-    // console.log("title",data)
-    setTitle(data.title);
+  async function fetchProductsTitle() {
+    const title = searchParams.get("query")
+    console.log("title",title)
+    // setTitle(data.title);
+    setTitle(title)
   }
 
   async function fetchProducts() {
+    setIsLoading(true)
     const pageParam = searchParams.get("page");
-    setIsLoading(true);
-    const data = await getProductsByCategoryService(category, pageParam);
-    setTheCurrentPage(parseInt(pageParam));
-    setProducts(data.data);
-    setTotalResults(data.totalResults);
-    setTotalPages(data.totalPages);
-    console.log(data);
-    setIsLoading(false);
+    const queryParam = searchParams.get("query");
+
+    const data = await getProductsByQueryService(queryParam,pageParam)
+    // console.log("found",data)
+    if(data.status==="failed"){
+      console.log("no results found")
+      setTotalResults(0)
+      setTotalPages(0)
+      setIsLoading(false)
+      return
+    }
+    setTotalPages(data.totalPages)
+    setTotalResults(data.totalResults)
+    setProducts(data.data)
+    setIsLoading(false)
     scrollToPageTop();
   }
-  useEffect(() => {
-    fetchCategoryTitle();
-  }, []);
+  // useEffect(() => {
+  //   // fetchCategoryTitle();
+  //   fetchProducts()
+  // }, []);
   useEffect(() => {
     //redirect user to have query page params
     restrictParams();
+    fetchProductsTitle()
     fetchProducts();
   }, [searchParams]);
   return (

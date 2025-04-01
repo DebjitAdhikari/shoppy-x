@@ -13,7 +13,9 @@ router.route("/create")
     .post(upload.array("images",5),productsController.createProduct)
 router.route("/deleteAll")
     .delete(productsController.deleteAllProduct)
-    
+
+router.route("/searchSuggestions")
+    .get(productsController.getSearchSuggestions)
 router.route("/queryProducts")
     .get(productsController.getProductsByQuery)
 router.route("/getByCategory/:category")

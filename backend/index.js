@@ -9,6 +9,7 @@ import userRouter from "./routers/userRouter.js"
 import adminRouter from "./routers/adminRouter.js"
 import bannerRouter from "./routers/bannerRouter.js"
 import contactRouter from "./routers/contactRouter.js"
+import mailRouter from "./routers/mailRouter.js"
 import reviewRouter from "./routers/reviewRouter.js"
 import cookieParser from "cookie-parser"
 dotenv.config()
@@ -37,6 +38,7 @@ app.use("/api/v1/users",userRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/banners",bannerRouter)
 app.use("/api/v1/contact",contactRouter)
+app.use("/api/v1/mail",mailRouter)
 
 
 app.use("*",(req,res,next)=>{
