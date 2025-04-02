@@ -325,7 +325,6 @@ export async function updateMyPhoto(req,res,next){
       status:"success",
       data
     })
-    
   } catch (err) {
     next(err)
   }

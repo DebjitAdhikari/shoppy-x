@@ -2,9 +2,11 @@ import {useState, useEffect} from "react"
 import { Trash2, X } from "lucide-react";
 import checkLogin from "../services/users/checkLogin.js";
 import { useNavigate } from "react-router-dom";
+import getCartProductsService from "../services/cart/getCartProductsService.js";
 
 function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
-
+  const [cartProducts,setCartProducts]=useState([])
+  const [totalAmount,setTotalAmount]=useState(0)
   const [isLoggedIn,setIsLoggedIn]=useState(false)
   const navigate = useNavigate()
   async function hasLoggedIn() {
@@ -17,12 +19,19 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
     }else if(data.data.status==="success"){
       setIsCartOpen(true)
       setIsLoggedIn(true)
+      setCartProducts(data.data.user.cart)
+      setTotalAmount(data.data.user.cartAmount)
     }
+    
 
-
+  }
+  async function fetchAllCartProducts(){
+    const data = await getCartProductsService()
+    console.log(data)
   }
   useEffect(()=>{
     hasLoggedIn()
+    fetchAllCartProducts()
   },[])
     
     return (
@@ -47,8 +56,8 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
                 <div className="flex-1 overflow-y-auto px-4 sm:px-6">
                   <div className="flow-root">
                     <ul className="divide-y divide-gray-200">
-                      {cartItems.map((item) => (
-                        <li key={item.id} className="py-6 flex">
+                      {cartProducts.map((item) => (
+                        <li key={item._id} className="py-6 flex">
                           <div className="flex-shrink-0 w-24 h-24 rounded-md overflow-hidden">
                             <img
                               src={item.image}
@@ -76,7 +85,7 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 px-2 sm:px-4 py-6 sm:px-6">
+                <div className="border-t border-gray-200 px-2 py-6 sm:px-6">
                   <div className="mb-4">
                     <div className="flex items-center">
                       <input
@@ -92,7 +101,7 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
 
                   <div className="flex justify-between text-base font-medium text-gray-900 mb-4">
                     <p>Subtotal</p>
-                    <p>₹{subtotal.toFixed(2)}</p>
+                    <p>₹{totalAmount}</p>
                   </div>
 
                   <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">

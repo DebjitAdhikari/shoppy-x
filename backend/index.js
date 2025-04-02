@@ -6,6 +6,7 @@ import connectDB from "./config/database.js"
 import productsRouter from "./routers/productsRouter.js"
 import categoryRouter from "./routers/categoryRouter.js"
 import userRouter from "./routers/userRouter.js"
+import cartRouter from "./routers/cartRouter.js"
 import adminRouter from "./routers/adminRouter.js"
 import bannerRouter from "./routers/bannerRouter.js"
 import contactRouter from "./routers/contactRouter.js"
@@ -35,6 +36,7 @@ app.use("/api/v1/products",productsRouter)
 app.use("/api/v1/reviews",reviewRouter)
 app.use("/api/v1/categories",categoryRouter)
 app.use("/api/v1/users",userRouter)
+app.use("/api/v1/cart",cartRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/banners",bannerRouter)
 app.use("/api/v1/contact",contactRouter)

@@ -67,7 +67,6 @@ const cartItems = [
 
 const Navbar = () => {
   const [searchSuggestions,setSearchSuggestions] = useState([])
-  const [noResults,setNoResults] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -81,17 +80,17 @@ const Navbar = () => {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  async function checkIsLoggedIn() {
-    const data = await checkLogin()
-    console.log("for nav bar cart",data)
-    if(data.status==="failed" && data.message==="Not Logged in")
-      setIsLoggedIn(false)
-    else if(data.data.status==="success")
-      setIsLoggedIn(true)
-  }
-  useEffect(()=>{
-    checkIsLoggedIn()
-  },[])
+  // async function checkIsLoggedIn() {
+  //   const data = await checkLogin()
+  //   console.log("for nav bar cart",data)
+  //   if(data.status==="failed" && data.message==="Not Logged in")
+  //     setIsLoggedIn(false)
+  //   else if(data.data.status==="success")
+  //     setIsLoggedIn(true)
+  // }
+  // useEffect(()=>{
+  //   checkIsLoggedIn()
+  // },[])
  
   useEffect(()=>{
     if(!searchQuery || searchQuery.length<3)

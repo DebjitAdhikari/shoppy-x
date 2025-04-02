@@ -70,10 +70,17 @@ const userSchema = new mongoose.Schema({
     },
     cart:[
         {
-            productId:{type: mongoose.Schema.Types.ObjectId, ref:"Product"},
+            productId:{type: mongoose.Schema.Types.ObjectId},
+            name:String,
+            image:String,
+            price:Number,
             quantity:{type:Number,min:1,default:1}
         }
-    ]
+    ],
+    cartAmount:{
+        type:Number,
+        default:0
+    }
 },{timestamps:true})
 
 userSchema.pre("save",async function (next){
