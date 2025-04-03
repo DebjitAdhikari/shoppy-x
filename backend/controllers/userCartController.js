@@ -45,12 +45,13 @@ export async function getAllCartProducts(req,res,next){
 }
 export async function updateQuantity(req,res,next){
     try {
-        console.log(req.body)
+        // console.log(req.body)
         const {productId} = req.params
         const {quantity}=req.body
+        // console.log(productId)
         const user = req.user
         const productIndex = user.cart.findIndex((product)=>product.productId.toString()===productId)
-        console.log(productIndex)
+        // console.log(productIndex)
         user.cart[productIndex].quantity=parseInt(quantity)
         const totalCartAmount = user.cart.reduce((acc,product)=>{
             return acc+(product.price*product.quantity)

@@ -3,9 +3,12 @@ import { Trash2, X } from "lucide-react";
 import checkLogin from "../services/users/checkLogin.js";
 import { useNavigate } from "react-router-dom";
 import getCartProductsService from "../services/cart/getCartProductsService.js";
+import CartProduct from "./CartProduct.jsx";
+import updateCartProductService from "../services/cart/updateCartProductService.js";
 
-function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
+function Cart({setIsCartOpen,totalItems,}) {
   const [cartProducts,setCartProducts]=useState([])
+  const [totalProducts,setTotalProducts]=useState(0)
   const [totalAmount,setTotalAmount]=useState(0)
   const [isLoggedIn,setIsLoggedIn]=useState(false)
   const navigate = useNavigate()
@@ -21,13 +24,17 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
       setIsLoggedIn(true)
       setCartProducts(data.data.user.cart)
       setTotalAmount(data.data.user.cartAmount)
+      setTotalProducts(data.data.user.cart.length)
     }
-    
-
+  }
+  async function updateProductQuantity(id,formData){
+    const data = await updateCartProductService(id,formData)
+    setCartProducts(data.data.cart)
+    setTotalAmount(data.data.cartAmount)
   }
   async function fetchAllCartProducts(){
-    const data = await getCartProductsService()
-    console.log(data)
+    const {data} = await getCartProductsService()
+    console.log(data.cart)
   }
   useEffect(()=>{
     hasLoggedIn()
@@ -44,7 +51,7 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
             <div className="relative w-screen max-w-md">
               <div className="h-full flex flex-col bg-white shadow-xl">
                 <div className="flex items-center justify-between px-4 py-6 sm:px-6">
-                  <h2 className="text-lg font-medium text-gray-900">Shopping Cart ({totalItems})</h2>
+                  <h2 className="text-lg font-medium text-gray-900">Shopping Cart ({totalProducts})</h2>
                   <button
                     onClick={() => setIsCartOpen(false)}
                     className="text-gray-400 bg-transparent hover:text-gray-500"
@@ -57,29 +64,8 @@ function Cart({setIsCartOpen,cartItems,totalItems,subtotal}) {
                   <div className="flow-root">
                     <ul className="divide-y divide-gray-200">
                       {cartProducts.map((item) => (
-                        <li key={item._id} className="py-6 flex">
-                          <div className="flex-shrink-0 w-24 h-24 rounded-md overflow-hidden">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="ml-4 flex-1 flex flex-col">
-                            <div className="flex justify-between">
-                              <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
-                              <button className="text-gray-400 bg-transparent hover:text-gray-500">
-                                <Trash2 className="h-5 w-5" />
-                              </button>
-                            </div>
-                            <p className="mt-1 text-sm text-gray-500">₹{item.price}</p>
-                            <div className="mt-4 flex items-center">
-                              <button className="p-1 rounded-md border bg-transparent border-gray-300 text-gray-600 hover:bg-gray-50">-</button>
-                              <span className="mx-4 text-gray-600">{item.quantity}</span>
-                              <button className="p-1 rounded-md border bg-transparent border-gray-300 text-gray-600 hover:bg-gray-50">+</button>
-                            </div>
-                          </div>
-                        </li>
+                        <CartProduct key={item._id} item={item} 
+                        updateProductQuantity={updateProductQuantity}></CartProduct>
                       ))}
                     </ul>
                   </div>
