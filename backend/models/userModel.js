@@ -72,6 +72,10 @@ const userSchema = new mongoose.Schema({
         {
             productId:{type: mongoose.Schema.Types.ObjectId},
             name:String,
+            size:{
+                type:String,
+                default:null
+            },
             image:String,
             price:Number,
             quantity:{type:Number,min:1,default:1}

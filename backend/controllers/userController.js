@@ -228,7 +228,7 @@ export async function protectRoute(req,res,next){
 export async function protectAdminRoute(req,res,next){
   try {
     const token = req.cookies.adminjwt
-    console.log(token)
+    // console.log(token)
   } catch (err) {
     next(err)
   }
@@ -351,7 +351,7 @@ export async function deleteMyPhoto(req,res,next){
 export async function updateMyPassword(req,res,next) {
   try {
     const {currentPassword,newPassword,confirmPassword}=req.body
-    console.log(currentPassword,newPassword,confirmPassword)
+    // console.log(currentPassword,newPassword,confirmPassword)
     const user = await User.findById(req.user._id).select("+password")
     if(!await user.checkPassword(currentPassword))
       return res.status(400).json({

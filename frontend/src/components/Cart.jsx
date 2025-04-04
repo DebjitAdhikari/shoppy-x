@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import getCartProductsService from "../services/cart/getCartProductsService.js";
 import CartProduct from "./CartProduct.jsx";
 import updateCartProductService from "../services/cart/updateCartProductService.js";
+import deleteCartProductService from "../services/cart/deleteCartProductService.js";
+import EmptyCart from "./EmptyCart.jsx";
 
 function Cart({setIsCartOpen,totalItems,}) {
   const [cartProducts,setCartProducts]=useState([])
@@ -30,6 +32,13 @@ function Cart({setIsCartOpen,totalItems,}) {
   async function updateProductQuantity(id,formData){
     const data = await updateCartProductService(id,formData)
     setCartProducts(data.data.cart)
+    setTotalAmount(data.data.cartAmount)
+  }
+  async function deleteCartProduct(id){
+    const data = await deleteCartProductService(id)
+    console.log(data)
+    setCartProducts(data.data.cart)
+    setTotalProducts(data.data.cart.length)
     setTotalAmount(data.data.cartAmount)
   }
   async function fetchAllCartProducts(){
@@ -59,13 +68,17 @@ function Cart({setIsCartOpen,totalItems,}) {
                     <X className="h-6 w-6" />
                   </button>
                 </div>
-
+                {
+                  cartProducts.length===0?<EmptyCart></EmptyCart>:
+                  <>
+              {/* cart with items */}
                 <div className="flex-1 overflow-y-auto px-4 sm:px-6">
                   <div className="flow-root">
                     <ul className="divide-y divide-gray-200">
                       {cartProducts.map((item) => (
                         <CartProduct key={item._id} item={item} 
-                        updateProductQuantity={updateProductQuantity}></CartProduct>
+                        updateProductQuantity={updateProductQuantity}
+                        deleteCartProduct={deleteCartProduct}></CartProduct>
                       ))}
                     </ul>
                   </div>
@@ -94,6 +107,10 @@ function Cart({setIsCartOpen,totalItems,}) {
                     Proceed to Checkout
                   </button>
                 </div>
+                  
+                  </>
+                }
+
               </div>
             </div>
           </div>

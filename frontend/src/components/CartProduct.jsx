@@ -1,9 +1,10 @@
-import { Trash2 } from "lucide-react"
+import { Loader, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-function CartProduct({item,updateProductQuantity}) {
+function CartProduct({item,updateProductQuantity,deleteCartProduct}) {
     const [quantity,setQuantity]=useState(1)
     const [isUpdating,setIsUpdating] = useState(false)
+    const [isDeleting,setIsDeleting] = useState(false)
     
     async function updateTheQuantity(id,updatedQuantity){
         const formData = new FormData()
@@ -12,6 +13,12 @@ function CartProduct({item,updateProductQuantity}) {
         await updateProductQuantity(id,formData)
         setIsUpdating(false)
     }
+    async function deleteTheProduct(id){
+        setIsDeleting(true)
+        await deleteCartProduct(id)
+        setIsDeleting(false)
+    }
+
     useEffect(()=>{
         setQuantity(item.quantity)
     },[])
@@ -27,8 +34,14 @@ function CartProduct({item,updateProductQuantity}) {
                           <div className="ml-4 flex-1 flex flex-col">
                             <div className="flex justify-between">
                               <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
-                              <button className="text-gray-400 bg-transparent hover:text-gray-500">
+                              <button
+                              onClick={()=>deleteTheProduct(item.productId)} 
+                              disabled={isDeleting} className="text-gray-400 bg-transparent hover:text-gray-500">
+                                {
+                                  isDeleting?
+                                  <Loader></Loader>:
                                 <Trash2 className="h-5 w-5" />
+                                }
                               </button>
                             </div>
                             <p className="mt-1 text-sm text-gray-500">₹{item.price}</p>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Star,
   Truck,
@@ -14,15 +14,22 @@ import {
 import Loader from "../components/Loader.jsx";
 import getProductById from "../services/products/getProductById.js";
 import ErrorPage from "./ErrorPage.jsx";
-
+import addCartProductService from "../services/cart/addCartProductService.js";
+import checkProductInCartService from "../services/cart/checkProductInCartService.js";
+import deleteCartProductService from "../services/cart/deleteCartProductService.js";
+import successToastMessage from "../utils/successToastMessage.js"
 const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [isProductLoading, setIsProductLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [doesProductExist, setDoesProductExist] = useState(false);
   const [isProductNotFound, setIsProductNotFound] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const topRef = useRef();
+  const navigate = useNavigate()
   const [modalMedia, setModalMedia] = useState({
     items: [],
     currentIndex: 0,
@@ -88,7 +95,42 @@ const ProductDetails = () => {
     window.scrollTo(0, 0);
   }, [isProductLoading]);
 
+ 
+  async function addToCart(){
+    // console.log(product)
+    // console.log(selectedSize)
+    const formData = new FormData()
+    formData.append("productId",product._id)
+    formData.append("name",product.name)
+    formData.append("image",product.images[0].url)
+    if(selectedSize)
+      formData.append("size",selectedSize)
+    else
+      formData.append("size",null)
+    formData.append("price",product.finalPrice)
+    formData.append("qunatity",1)
+    
+    setIsAdding(true)
+
+    const data = await addCartProductService(formData)
+    // console.log("added",data.data)
+    if(data.data.status==="failed")
+      return navigate("/userAuth")
+    setIsAdding(false)
+    setDoesProductExist(true)
+    // successToastMessage("Products Added to Cart!")
+    // console.log(data)
+  }
+  async function removeFromCart(){
+    setIsRemoving(true)
+    const data = await deleteCartProductService(product._id)
+    setIsRemoving(false)
+    setDoesProductExist(false)
+    // console.log(data)
+  }
+
   async function fetchProductDetails() {
+    setDoesProductExist(false)
     setIsProductNotFound(false);
     const { data } = await getProductById(id);
     // console.log(data.status);
@@ -100,7 +142,13 @@ const ProductDetails = () => {
 
     setIsProductLoading(false);
     setProduct(data);
+    const res = await checkProductInCartService(data._id)
+    
+    setDoesProductExist(res.data.data) //true or false
   }
+  // useEffect(()=>{
+  //   checkProductExists()
+  // },[doesProductExist])
   useEffect(() => {
     fetchProductDetails();
   }, []);
@@ -263,9 +311,28 @@ const ProductDetails = () => {
                   </div>
 
                   <div className="space-y-3 md:space-y-4">
-                    <button className="w-full bg-blue-600 text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
-                      Add to Cart
-                    </button>
+                      {
+                        doesProductExist?
+                        // remove from cart
+                        <button
+                        disabled={isRemoving}
+                          onClick={removeFromCart}
+                          className="w-full bg-red-600 text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-red-700 transition duration-300 flex items-center justify-center gap-2"
+                        >
+                          {
+                            isRemoving?"Removing...":"Remove from Cart"
+                          }
+                          
+                        </button>:
+                        // add to cart
+                        <button disabled={isAdding} onClick={addToCart} className="w-full bg-blue-600 text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
+                          {
+                            isAdding?"Adding...":"Add to Cart"
+                          }
+                          
+                        </button>
+                      }
+
                     <button className="w-full bg-gray-900 text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-gray-800 transition duration-300">
                       Buy Now
                     </button>

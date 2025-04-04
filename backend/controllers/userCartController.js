@@ -2,12 +2,12 @@ import User from "../models/userModel.js";
 export async function addNewProduct(req,res,next){
     try {
         const userId = req.user._id
-        console.log(req.body)
-        const {productId,name,image,price,quantity}=req.body
+        // console.log(req.body)
+        const {productId,name,image,size,price,quantity}=req.body
         // const user = await User.findById(userId)
         const user = req.user
-        user.cart.push({productId,name,image,price,quantity})
-        const totalCartAmount = user.cartAmount + price
+        user.cart.push({productId,name,image,size,price,quantity})
+        const totalCartAmount = user.cartAmount + parseInt(price)
         user.cartAmount = totalCartAmount
         await user.save()
         // console.log(user)
@@ -22,7 +22,6 @@ export async function addNewProduct(req,res,next){
 }
 export async function getAllCartProducts(req,res,next){
     try {
-        console.log("hi")
         const userId = req.user._id
         const user = await User.findById(userId)
         // const user = req.user
@@ -30,13 +29,31 @@ export async function getAllCartProducts(req,res,next){
         // user.cartAmount = totalCartAmount
         // await user.save()
         // console.log(user)
-        console.log(user)
+        // console.log(user)
         res.status(200).json({
             status:"success",
             data:{
                 cart:user.cart,
                 cartAmount:user.cartAmount
             }
+        })
+    //   const data = await 
+    } catch (err) {
+        next(err)
+    }
+}
+export async function checkCartProduct(req,res,next){
+    try {
+        
+        const user= req.user
+        const {productId} = req.params
+        // console.log(productId)
+        // console.log(user)
+        const doesProductExist = user.cart.some(product=>product.productId.toString()===productId)
+        // console.log(doesProductExist)
+        res.status(200).json({
+            status:"success",
+            data:doesProductExist
         })
     //   const data = await 
     } catch (err) {
@@ -68,7 +85,6 @@ export async function updateQuantity(req,res,next){
 }
 export async function deleteCartProduct(req,res,next){
     try {
-        console.log(req.body)
         const {productId}=req.params
         const user = req.user
         if(user.cart.length===0)
