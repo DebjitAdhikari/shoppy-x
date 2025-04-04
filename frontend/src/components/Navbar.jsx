@@ -5,6 +5,7 @@ import Cart from './Cart';
 import checkLogin from '../services/users/checkLogin.js';
 import getProductsByQueryService from '../services/products/getProductsByQueryService.js';
 import getSearchSuggestionsService from '../services/products/getSearchSuggestionsService.js';
+import { ToastContainer } from 'react-toastify';
 
 const categories = [
   {
@@ -73,13 +74,12 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [totalItems,setTotalItem] = useState(0)
   const [isLoggedIn,setIsLoggedIn]=useState(false)
   const navigate = useNavigate();
   const location = useLocation();
 
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
+  
   // async function checkIsLoggedIn() {
   //   const data = await checkLogin()
   //   console.log("for nav bar cart",data)
@@ -142,6 +142,7 @@ const Navbar = () => {
 
   return (
     <>
+    <ToastContainer></ToastContainer>
       <nav className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -448,8 +449,7 @@ const Navbar = () => {
       {isCartOpen && (
         <Cart setIsCartOpen={setIsCartOpen} 
         cartItems={cartItems}
-        totalItems={totalItems}
-        subtotal={subtotal}>
+        >
         </Cart>
       
       )}

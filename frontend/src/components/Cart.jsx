@@ -8,7 +8,7 @@ import updateCartProductService from "../services/cart/updateCartProductService.
 import deleteCartProductService from "../services/cart/deleteCartProductService.js";
 import EmptyCart from "./EmptyCart.jsx";
 
-function Cart({setIsCartOpen,totalItems,}) {
+function Cart({setIsCartOpen,}) {
   const [cartProducts,setCartProducts]=useState([])
   const [totalProducts,setTotalProducts]=useState(0)
   const [totalAmount,setTotalAmount]=useState(0)

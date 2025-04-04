@@ -118,7 +118,7 @@ const ProductDetails = () => {
       return navigate("/userAuth")
     setIsAdding(false)
     setDoesProductExist(true)
-    // successToastMessage("Products Added to Cart!")
+    successToastMessage("Product Added to Cart!")
     // console.log(data)
   }
   async function removeFromCart(){
@@ -126,6 +126,7 @@ const ProductDetails = () => {
     const data = await deleteCartProductService(product._id)
     setIsRemoving(false)
     setDoesProductExist(false)
+    successToastMessage("Product Removed from Cart!")
     // console.log(data)
   }
 
