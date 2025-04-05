@@ -13,6 +13,7 @@ import scrollToPageTop from "../utils/scrollToPageTop.js";
 import NoProductsFound from "../components/NoProductsFound.jsx";
 import getCategoryByValueService from "../services/categories/getCategoryByValueService.js";
 import getProductsByQueryService from "../services/products/getProductsByQueryService.js";
+import { Helmet } from "react-helmet-async";
 
 const sortOptions = [
   { name: "Most Popular", value: "popular" },
@@ -58,6 +59,8 @@ const SearchedProducts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [theCurrentPage, setTheCurrentPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState(null);
+
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -160,6 +163,7 @@ const SearchedProducts = () => {
     setIsLoading(true)
     const pageParam = searchParams.get("page");
     const queryParam = searchParams.get("query");
+    setSearchQuery(queryParam)
     setTheCurrentPage(parseInt(pageParam))
     const data = await getProductsByQueryService(queryParam,pageParam)
     // console.log("found",data)
@@ -186,7 +190,48 @@ const SearchedProducts = () => {
     fetchProductsTitle()
     fetchProducts();
   }, [searchParams]);
+ 
   return (
+    <>
+    <Helmet>
+  {/* Dynamic Title with Query */}
+  <title>{`Search Results for "${searchQuery}" | ShoppyX`}</title>
+
+  {/* Description */}
+  <meta
+    name="description"
+    content={`Find results for "${searchQuery}" at ShoppyX. Browse a wide range of products across fashion, electronics, home essentials, and more.`}
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content={`${searchQuery}, buy ${searchQuery}, ${searchQuery} deals, ShoppyX search, online shopping`}
+  />
+
+  {/* Open Graph */}
+  <meta property="og:title" content={`Search: ${searchQuery} | ShoppyX`} />
+  <meta
+    property="og:description"
+    content={`Shop the best matches for "${searchQuery}" on ShoppyX. Discover trending items and great deals now.`}
+  />
+  <meta property="og:type" content="website" />
+  <meta
+    property="og:url"
+    content={`https://shoppy-x.vercel.app/search?query=${encodeURIComponent(searchQuery)}`}
+  />
+  <meta
+    property="og:image"
+    content="https://shoppy-x.vercel.app/og-default.jpg"
+  />
+
+  {/* Canonical */}
+  <link
+    rel="canonical"
+    href={`https://shoppy-x.vercel.app/search?query=${encodeURIComponent(searchQuery)}`}
+  />
+</Helmet>
+
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
       {/* Header Section */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-8">
@@ -343,6 +388,7 @@ const SearchedProducts = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

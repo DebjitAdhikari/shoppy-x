@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; // If using React Router
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 
 function ErrorPage({customErrorMessage}) {
   const containerVariants = {
@@ -14,6 +15,37 @@ function ErrorPage({customErrorMessage}) {
   };
 
   return (
+    <>
+    <Helmet>
+  {/* Title */}
+  <title>404 - Page Not Found | ShoppyX</title>
+
+  {/* Meta Description */}
+  <meta
+    name="description"
+    content="Oops! The page you're looking for doesn't exist. Return to ShoppyX and explore our wide range of products, from fashion to electronics and more."
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content="ShoppyX 404, page not found, missing page, broken link, online shopping, fashion, electronics, home essentials"
+  />
+
+  {/* Open Graph for social sharing */}
+  <meta property="og:title" content="404 Error | Page Not Found - ShoppyX" />
+  <meta
+    property="og:description"
+    content="We couldn't find the page you were looking for. Head back to ShoppyX and discover trending fashion, electronics, and more!"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoppy-x.vercel.app/404" />
+  <meta property="og:image" content="https://shoppy-x.vercel.app/og-default.jpg" />
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://shoppy-x.vercel.app/404" />
+</Helmet>
+
     <motion.div
       variants={containerVariants}
       initial="hidden"
@@ -58,6 +90,7 @@ function ErrorPage({customErrorMessage}) {
         </motion.div>
       </motion.div>
     </motion.div>
+    </>
   );
 }
 

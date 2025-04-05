@@ -4,6 +4,7 @@ import getContact from '../services/contact/getContact.js';
 import Loader from '../components/Loader.jsx';
 import sendMailService from '../services/mail/sendMailService.js';
 import scrollToPageTop from '../utils/scrollToPageTop.js';
+import { Helmet } from 'react-helmet-async';
 
 const ContactUs = () => {
   const [companyContact, setCompanyContact] = useState([]);
@@ -77,6 +78,39 @@ const ContactUs = () => {
 
   return (
     <>
+    <Helmet>
+  {/* Title */}
+  <title>Contact Us | Get in Touch with ShoppyX</title>
+
+  {/* Meta Description */}
+  <meta
+    name="description"
+    content="Have questions or need help? Contact ShoppyX for customer support, order inquiries, or feedback. We're here to assist you!"
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content="ShoppyX contact, customer support, contact ShoppyX, help, support, feedback, order issues, online shopping help"
+  />
+
+  {/* Open Graph */}
+  <meta property="og:title" content="Contact Us | ShoppyX" />
+  <meta
+    property="og:description"
+    content="Reach out to ShoppyX for support, queries, or feedback. We’re just a message away!"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoppy-x.vercel.app/contact" />
+  <meta
+    property="og:image"
+    content="https://shoppy-x.vercel.app/og-default.jpg"
+  />
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://shoppy-x.vercel.app/contact" />
+</Helmet>
+
       {isContactLoading ? (
         <div className='h-screen flex items-center justify-center bg-gray-50'>
           <Loader />

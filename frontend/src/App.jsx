@@ -1,5 +1,6 @@
 import 'react-toastify/dist/ReactToastify.css';
 import {createBrowserRouter, RouterProvider} from "react-router-dom"
+import { HelmetProvider } from 'react-helmet-async';
 import "./index.css"
 import AppLayout from './components/AppLayout';
 import Loader from './components/Loader';
@@ -145,9 +146,12 @@ const router = createBrowserRouter([
 )
 function App() {
   return (
+    <HelmetProvider>
+
     <RouterProvider router={router}>
 
     </RouterProvider>
+    </HelmetProvider>
   )
 }
 

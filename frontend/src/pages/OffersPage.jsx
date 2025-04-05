@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Timer, ShoppingBag, Gift, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Offer from '../components/Offer';
+import { Helmet } from 'react-helmet-async';
 
 const offers = [
   {
@@ -54,6 +55,40 @@ const OffersPage = () => {
     })
   },[])
   return (
+    <>
+    <Helmet>
+  {/* Title */}
+  <title>Best Online Deals & Offers | ShoppyX</title>
+
+  {/* Meta Description */}
+  <meta
+    name="description"
+    content="Grab the best online shopping deals and offers at ShoppyX. Limited-time discounts on electronics, fashion, home, and more. Shop and save today!"
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content="ShoppyX offers, online deals, shopping discounts, electronics sale, fashion deals, home essentials offer, limited-time deals"
+  />
+
+  {/* Open Graph */}
+  <meta property="og:title" content="Exciting Shopping Offers | ShoppyX" />
+  <meta
+    property="og:description"
+    content="Save big with exclusive shopping offers at ShoppyX. Find amazing discounts on your favorite products — hurry, limited time only!"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoppy-x.vercel.app/offers" />
+  <meta
+    property="og:image"
+    content="https://shoppy-x.vercel.app/og-default.jpg"
+  />
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://shoppy-x.vercel.app/offers" />
+</Helmet>
+
     <div  className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative bg-indigo-600 text-white py-16">
@@ -134,6 +169,7 @@ const OffersPage = () => {
         </div>
       </div> */}
     </div>
+    </>
   );
 };
 

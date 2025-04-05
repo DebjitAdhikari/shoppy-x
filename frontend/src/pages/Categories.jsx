@@ -1,10 +1,11 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import Category from '../components/Category';
-import getAllCategoriesService from '../services/categories/getAllCategoriesService.js';
-import Loader from '../components/Loader.jsx';
-import scrollToPageTop from '../utils/scrollToPageTop.js';
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import Category from "../components/Category";
+import getAllCategoriesService from "../services/categories/getAllCategoriesService.js";
+import Loader from "../components/Loader.jsx";
+import scrollToPageTop from "../utils/scrollToPageTop.js";
+import { Helmet } from "react-helmet-async";
 
 // const categories = [
 //   {
@@ -73,37 +74,75 @@ import scrollToPageTop from '../utils/scrollToPageTop.js';
 // ];
 
 const Categories = () => {
-  const [allCategories,setAllCategories]=useState([])
-  const [isLoading,setIsLoading] = useState(false)
-  
-  async function fetchAllCategories(){
-    setIsLoading(true)
-    const {data} = await getAllCategoriesService()
-    console.log(data)
-    setIsLoading(false)
-    setAllCategories(data)
-    scrollToPageTop()
+  const [allCategories, setAllCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function fetchAllCategories() {
+    setIsLoading(true);
+    const { data } = await getAllCategoriesService();
+    console.log(data);
+    setIsLoading(false);
+    setAllCategories(data);
+    scrollToPageTop();
   }
 
-  // useLayoutEffect(()=>{
-  //   window.scrollTo(0,0)
-
-  // },[])
-  useEffect(()=>{
-    fetchAllCategories()
-  },[])
+  useEffect(() => {
+    fetchAllCategories();
+  }, []);
   return (
-    <div className="max-w-7xl  mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="sm:text-3xl text-xl font-bold text-gray-900 mb-8">Shop by Category</h1>
-      {
-        isLoading?<Loader></Loader>:
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {allCategories?.map((category) => (
-          <Category key={category._id} category={category} ></Category>
-        ))}
+    <>
+      <Helmet>
+        {/* Title */}
+        <title>
+          Shop by Categories | Fashion, Electronics & More | ShoppyX
+        </title>
+
+        {/* Meta Description */}
+        <meta
+          name="description"
+          content="Explore top product categories including electronics, fashion, home essentials, beauty, and more. Shop trending items and exclusive deals at ShoppyX today!"
+        />
+
+        {/* Keywords */}
+        <meta
+          name="keywords"
+          content="ShoppyX, online shopping, product categories, electronics, fashion, home decor, kitchen, beauty, deals, discounts, trending items"
+        />
+
+        {/* Open Graph for social sharing */}
+        <meta property="og:title" content="Shop by Categories | ShoppyX" />
+        <meta
+          property="og:description"
+          content="Discover a wide range of shopping categories at ShoppyX — from gadgets to fashion, home, and beauty products. Start shopping now!"
+        />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:url"
+          content="https://shoppy-x.vercel.app/categories"
+        />
+        <meta
+          property="og:image"
+          content="https://shoppy-x.vercel.app/og-default.jpg"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://shoppy-x.vercel.app/categories" />
+      </Helmet>
+      <div className="max-w-7xl  mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="sm:text-3xl text-xl font-bold text-gray-900 mb-8">
+          Shop by Category
+        </h1>
+        {isLoading ? (
+          <Loader></Loader>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {allCategories?.map((category) => (
+              <Category key={category._id} category={category}></Category>
+            ))}
+          </div>
+        )}
       </div>
-      }
-    </div>
+    </>
   );
 };
 

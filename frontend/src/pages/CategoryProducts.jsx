@@ -12,6 +12,7 @@ import getProductsByCategoryService from "../services/products/getProductsByCate
 import scrollToPageTop from "../utils/scrollToPageTop.js";
 import NoProductsFound from "../components/NoProductsFound.jsx";
 import getCategoryByValueService from "../services/categories/getCategoryByValueService.js";
+import { Helmet } from "react-helmet-async";
 
 const sortOptions = [
   { name: "Most Popular", value: "popular" },
@@ -114,28 +115,7 @@ const CategoryProducts = () => {
     });
   };
 
-  const filteredProducts = filterProducts(products);
-  const itemsPerPage = isMobile ? 10 : 15;
-  const totalProductsPage = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  // const paginatedProducts = filteredProducts.slice(
-  //   (currentPage - 1) * itemsPerPage,
-  //   currentPage * itemsPerPage
-  // );
-
-  // const visiblePages = () => {
-  //   const delta = isMobile ? 1 : 2;
-  //   const range = [];
-  //   for (
-  //     let i = Math.max(1, currentPage - delta);
-  //     i <= Math.min(totalProductsPage, currentPage + delta);
-  //     i++
-  //   ) {
-  //     range.push(i);
-  //   }
-  //   return range;
-  // };
-
+  
   const renderFilterCheckbox = (filter, option) => (
     <label key={option.value} className="flex items-center">
       <input
@@ -190,6 +170,32 @@ const CategoryProducts = () => {
     fetchProducts();
   }, [searchParams]);
   return (
+    <>
+    <Helmet>
+    <title>{`${title} Products | ShoppyX`}</title>
+        <meta
+          name="description"
+          content={`Browse top-rated ${title.toLowerCase()} products at ShoppyX. Discover the best deals, new arrivals, and customer favorites.`}
+        />
+        <meta
+          name="keywords"
+          content={`buy ${category}, ${category} products, ${category} deals, ${category} shopping, ShoppyX ${category}`}
+        />
+        <meta property="og:title" content={`${category} Products | ShoppyX`} />
+        <meta
+          property="og:description"
+          content={`Explore a wide range of ${category.toLowerCase()} at ShoppyX. Great prices, trending items, and fast delivery.`}
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://shoppy-x.vercel.app/categories/${category.toLowerCase()}`} />
+        <meta
+          property="og:image"
+          content="https://shoppy-x.vercel.app/og-default.jpg"
+        />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={`https://shoppy-x.vercel.app/categories/${category.toLowerCase()}`} />
+    </Helmet>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
       {/* Header Section */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-8">
@@ -346,6 +352,7 @@ const CategoryProducts = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

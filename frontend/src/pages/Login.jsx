@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import login from '../services/users/login.js';
 import checkLogin from '../services/users/checkLogin.js';
+import { Helmet } from 'react-helmet-async';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -51,6 +52,40 @@ const Login = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  {/* Title */}
+  <title>Login to Your Account | ShoppyX</title>
+
+  {/* Meta Description */}
+  <meta
+    name="description"
+    content="Access your ShoppyX account to manage orders, track deliveries, and explore exclusive deals. Secure and fast login experience."
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content="ShoppyX login, account login, sign in ShoppyX, user account, track orders, online shopping login"
+  />
+
+  {/* Open Graph */}
+  <meta property="og:title" content="Login | ShoppyX" />
+  <meta
+    property="og:description"
+    content="Login to your ShoppyX account to enjoy a personalized shopping experience. Safe and secure access to your orders and wishlist."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoppy-x.vercel.app/login" />
+  <meta
+    property="og:image"
+    content="https://shoppy-x.vercel.app/og-default.jpg"
+  />
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://shoppy-x.vercel.app/login" />
+</Helmet>
+
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -182,6 +217,7 @@ const Login = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -6,68 +6,46 @@ import checkLogin from '../services/users/checkLogin.js';
 import getProductsByQueryService from '../services/products/getProductsByQueryService.js';
 import getSearchSuggestionsService from '../services/products/getSearchSuggestionsService.js';
 import { ToastContainer } from 'react-toastify';
+import getAllCategoriesService from '../services/categories/getAllCategoriesService.js';
 
-const categories = [
-  {
-    name: "Women's Fashion",
-    href: '/category/womens-fashion',
-    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80'
-  },
-  {
-    name: "Men's Fashion",
-    href: '/category/mens-fashion',
-    image: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80'
-  },
-  {
-    name: 'Electronics',
-    href: '/category/electronics',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-  },
-  {
-    name: 'Home & Kitchen',
-    href: '/category/home-kitchen',
-    image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-  },
-  {
-    name: 'Beauty & Health',
-    href: '/category/beauty-health',
-    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-  },
-  {
-    name: 'Sports & Outdoors',
-    href: '/category/sports-outdoors',
-    image: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-  },
-];
-
-const cartItems = [
-  {
-    id: 1,
-    name: 'Classic White Sneakers',
-    price: 89.99,
-    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=2012&q=80',
-    quantity: 1
-  },
-  {
-    id: 2,
-    name: 'Leather Crossbody Bag',
-    price: 129.99,
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80',
-    quantity: 2
-  },
-  {
-    id: 3,
-    name: 'Minimalist Watch',
-    price: 199.99,
-    image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?ixlib=rb-4.0.3&auto=format&fit=crop&w=2099&q=80',
-    quantity: 1
-  }
-];
+// const categories = [
+//   {
+//     name: "Women's Fashion",
+//     href: '/category/womens-fashion',
+//     image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80'
+//   },
+//   {
+//     name: "Men's Fashion",
+//     href: '/category/mens-fashion',
+//     image: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80'
+//   },
+//   {
+//     name: 'Electronics',
+//     href: '/category/electronics',
+//     image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+//   },
+//   {
+//     name: 'Home & Kitchen',
+//     href: '/category/home-kitchen',
+//     image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+//   },
+//   {
+//     name: 'Beauty & Health',
+//     href: '/category/beauty-health',
+//     image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+//   },
+//   {
+//     name: 'Sports & Outdoors',
+//     href: '/category/sports-outdoors',
+//     image: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+//   },
+// ];
 
 
 
 const Navbar = () => {
   const [searchSuggestions,setSearchSuggestions] = useState([])
+  const [categories,setCategories] = useState([])
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -91,6 +69,11 @@ const Navbar = () => {
   // useEffect(()=>{
   //   checkIsLoggedIn()
   // },[])
+  async function fetchAllCategories(){
+    const {data} = await getAllCategoriesService()
+    console.log(data)
+    setCategories(data.slice(0,5))
+  }
  
   useEffect(()=>{
     if(!searchQuery || searchQuery.length<3)
@@ -121,6 +104,9 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(()=>{
+    fetchAllCategories()
+  },[])
   function goAndHideCategories() {
     setShowCategories(false);
     navigate("/categories");
@@ -180,18 +166,18 @@ const Navbar = () => {
                 {/* Categories Dropdown */}
                 {showCategories && (
                   <div className="absolute top-full left-0 w-64 mt-1 bg-white rounded-lg shadow-lg py-2 z-50">
-                    {categories.map((category) => (
+                    {categories?.map((category) => (
                       <Link
-                        key={category.name}
-                        to={category.href}
+                        key={category.title}
+                        to={`/categories/${category.value}`}
                         className="flex items-center px-4 py-2 hover:bg-gray-50"
                       >
                         <img
-                          src={category.image}
-                          alt={category.name}
+                          src={category.image.url}
+                          alt={category.title}
                           className="w-8 h-8 rounded-full object-cover"
                         />
-                        <span className="ml-3 text-gray-700">{category.name}</span>
+                        <span className="ml-3 text-gray-700">{category.title}</span>
                       </Link>
                     ))}
                     <button 
@@ -448,7 +434,7 @@ const Navbar = () => {
       {/* Cart Sidebar */}
       {isCartOpen && (
         <Cart setIsCartOpen={setIsCartOpen} 
-        cartItems={cartItems}
+        
         >
         </Cart>
       

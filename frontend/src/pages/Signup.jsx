@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
 import checkLogin from '../services/users/checkLogin';
 import signUp from '../services/users/signUp.js';
+import { Helmet } from 'react-helmet-async';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -77,6 +78,40 @@ const Signup = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  {/* Title */}
+  <title>Create Your Account | Join ShoppyX Today</title>
+
+  {/* Meta Description */}
+  <meta
+    name="description"
+    content="Sign up for a ShoppyX account and unlock exclusive shopping deals, personalized recommendations, and faster checkouts. Join now!"
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content="ShoppyX sign up, create account, register ShoppyX, join ShoppyX, new user registration, online shopping account"
+  />
+
+  {/* Open Graph */}
+  <meta property="og:title" content="Sign Up | ShoppyX" />
+  <meta
+    property="og:description"
+    content="Create your ShoppyX account to explore personalized shopping, track orders, and receive exclusive member offers."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoppy-x.vercel.app/signup" />
+  <meta
+    property="og:image"
+    content="https://shoppy-x.vercel.app/og-default.jpg"
+  />
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://shoppy-x.vercel.app/signup" />
+</Helmet>
+
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
       <div className="max-w-2xl w-full space-y-8">
         <div className="text-center">
@@ -359,6 +394,7 @@ const Signup = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

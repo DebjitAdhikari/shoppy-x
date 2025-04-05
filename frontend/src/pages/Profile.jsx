@@ -10,6 +10,7 @@ import updateMyDetails from '../services/users/updateMyDetails.js';
 import uploadMyPhoto from '../services/users/uploadMyPhoto.js';
 import updateMyPassword from '../services/users/updateMyPassword.js';
 import deleteMyPhoto from '../services/users/deleteMyPhoto.js';
+import { Helmet } from 'react-helmet-async';
 
 const tabs = [
   { name: 'Personal Info', icon: User },
@@ -242,7 +243,39 @@ const Profile = () => {
 
   return (
     <>
-    
+    <Helmet>
+  {/* Title */}
+  <title>Your Account & Profile | ShoppyX</title>
+
+  {/* Meta Description */}
+  <meta
+    name="description"
+    content="Manage your account details, orders, and preferences on ShoppyX. Update personal info, view purchase history, and explore personalized recommendations."
+  />
+
+  {/* Keywords */}
+  <meta
+    name="keywords"
+    content="ShoppyX user profile, account settings, purchase history, profile page, manage account, online shopping dashboard"
+  />
+
+  {/* Open Graph */}
+  <meta property="og:title" content="Your Profile | ShoppyX" />
+  <meta
+    property="og:description"
+    content="Access and manage your ShoppyX profile. Edit details, track orders, and enjoy a personalized shopping experience."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoppy-x.vercel.app/profile" />
+  <meta
+    property="og:image"
+    content="https://shoppy-x.vercel.app/og-default.jpg"
+  />
+
+  {/* Canonical URL */}
+  <link rel="canonical" href="https://shoppy-x.vercel.app/profile" />
+</Helmet>
+
     {
     
     <div className="max-w-7xl min-h-[90vh] mx-auto px-4 sm:px-6 lg:px-8 py-12">
