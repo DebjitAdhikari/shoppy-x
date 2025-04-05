@@ -106,7 +106,14 @@ export async function createProduct(req,res,next){
 export async function getProduct(req,res,next){
     try {
       
-      const product = await Product.findById(req.params.id).populate("reviews")
+      // const product = await Product.findById(req.params.id).populate({
+      //   path:"reviews",
+      //   populate:{
+      //     path:"userId",
+      //     select:"name"
+      //   }
+      // })
+      const product = await Product.findById(req.params.id)
       if(!product)
         return res.status(404).json({
           status:"failed",

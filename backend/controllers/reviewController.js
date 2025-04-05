@@ -5,8 +5,9 @@ import Review from "../models/reviewModel.js";
 
 export async function createReview(req,res,next) {
     try {
-        const { userName, userId, rating, description, productId } = req.body
-        if (!userName  || !rating || !description || !productId) {
+        const { rating, description, productId } = req.body
+        const userId = req.user._id
+        if (!userId  || !rating || !description || !productId) {
             return res.status(400).json({ status: "failed", message: "All fields are required" });
         }
 
@@ -52,7 +53,6 @@ export async function createReview(req,res,next) {
         const videoUrls = await Promise.all(videoUploadPromises||[])
         console.log(imageUrls,videoUrls)
         const newReview = await Review.create({
-            userName,
             userId,
             rating,
             description,
@@ -63,7 +63,7 @@ export async function createReview(req,res,next) {
         product.reviews.push(newReview._id)
         await product.save()
         res.status(201).json({
-            message:"success",
+            status:"success",
             data:newReview
         })
 
@@ -75,8 +75,34 @@ export async function getAllReviews(req,res,next) {
     try {
         const reviews = await Review.find({})        
         res.status(201).json({
-            message:"success",
+            status:"success",
             data:reviews
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+export async function hasReviewed(req,res,next) {
+    try {
+        const userId = req.user._id
+        console.log(userId)
+        const {productId} = req.params
+        console.log(productId)
+        if(!userId || !productId)
+            return res.status(400).json({
+                status:"failed",
+                message:"all fields are required"
+            })
+        const review = await Review.findOne({userId,productId})    
+        if(review)
+            return res.status(200).json({
+                status:"failed",
+                message:"You already reviewed this product"
+            })    
+        res.status(201).json({
+            status:"success",
+            message:"You can review",
+            data:true
         })
     } catch (err) {
         next(err)
@@ -93,6 +119,23 @@ export async function getReview(req,res,next) {
         res.status(201).json({
             message:"success",
             data:review
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+export async function getReviewsByProductId(req,res,next) {
+    try {
+        const {productId} = req.params
+        const reviews = await Review.find({productId}).populate("userId","name").select("-__v")    
+        if(!reviews) 
+            return res.status(400).json({
+                status:"failed",
+                message:"No reviews for this product found"
+            })    
+        res.status(201).json({
+            message:"success",
+            data:reviews
         })
     } catch (err) {
         next(err)

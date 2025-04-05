@@ -19,11 +19,15 @@ import checkProductInCartService from "../services/cart/checkProductInCartServic
 import deleteCartProductService from "../services/cart/deleteCartProductService.js";
 import successToastMessage from "../utils/successToastMessage.js";
 import { Helmet } from "react-helmet-async";
+import getReviewsByProductService from "../services/reviews/getReviewsByProductService.js";
 const ProductDetails = () => {
   const [product, setProduct] = useState({});
+  const [productReviews, setProductReviews] = useState([]);
+
   const [isProductLoading, setIsProductLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isReviewLoading, setIsReviewLoading] = useState(false);
   const [doesProductExist, setDoesProductExist] = useState(false);
   const [isProductNotFound, setIsProductNotFound] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
@@ -107,9 +111,7 @@ const ProductDetails = () => {
     else formData.append("size", null);
     formData.append("price", product.finalPrice);
     formData.append("qunatity", 1);
-
     setIsAdding(true);
-
     const data = await addCartProductService(formData);
     // console.log("added",data.data)
     if (data.data.status === "failed") return navigate("/userAuth");
@@ -137,7 +139,6 @@ const ProductDetails = () => {
       setIsProductLoading(false);
       return;
     }
-
     setIsProductLoading(false);
     setProduct(data);
     const res = await checkProductInCartService(data._id);
@@ -147,9 +148,23 @@ const ProductDetails = () => {
   // useEffect(()=>{
   //   checkProductExists()
   // },[doesProductExist])
+
+
+  //reviews releated
+  async function fetchAllReviews(){
+    setIsReviewLoading(true)
+    const data = await getReviewsByProductService(id)
+    // console.log(data)
+    setProductReviews(data.data)
+    setIsReviewLoading(false)
+  }
   useEffect(() => {
     fetchProductDetails();
+    fetchAllReviews()
   }, []);
+
+
+
 
   return (
     <>
@@ -509,7 +524,10 @@ const ProductDetails = () => {
 
                   {/* Reviews List */}
                   <div className="space-y-8">
-                    {product.reviews?.map((review) => (
+                    {
+                      isReviewLoading?<Loader></Loader>:
+                      
+                    productReviews?.map((review) => (
                       <div
                         key={review._id}
                         className="border-b border-gray-200 pb-8"
@@ -517,7 +535,7 @@ const ProductDetails = () => {
                         <div className="flex items-center justify-between mb-4">
                           <div>
                             <h4 className="font-semibold text-lg">
-                              {review.userName}
+                              {review.userId.name}
                             </h4>
                             <div className="flex items-center space-x-2">
                               <div className="flex">
@@ -587,7 +605,8 @@ const ProductDetails = () => {
                             </div>
                           )}
                       </div>
-                    ))}
+                    ))
+                    }
                   </div>
                 </div>
 
