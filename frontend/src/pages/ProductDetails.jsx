@@ -10,6 +10,11 @@ import {
   X,
   Upload,
   Play,
+  CheckCircle,
+  Pencil,
+  Trash,
+  TrashIcon,
+  PencilIcon,
 } from "lucide-react";
 import Loader from "../components/Loader.jsx";
 import getProductById from "../services/products/getProductById.js";
@@ -20,13 +25,23 @@ import deleteCartProductService from "../services/cart/deleteCartProductService.
 import successToastMessage from "../utils/successToastMessage.js";
 import { Helmet } from "react-helmet-async";
 import getReviewsByProductService from "../services/reviews/getReviewsByProductService.js";
+import createReviewService from "../services/reviews/createReviewService.js";
+import checkIfAbleToReviewService from "../services/reviews/checkIfAbleToReviewService.js";
+import checkLogin from "../services/users/checkLogin.js";
+import updateReviewService from "../services/reviews/updateReviewService.js";
+import deleteReviewService from "../services/reviews/deleteReviewService.js";
 const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [productReviews, setProductReviews] = useState([]);
-
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAbleToReview, setIsAbleToReview] = useState(false);
   const [isProductLoading, setIsProductLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [isReviewLoading, setIsReviewLoading] = useState(false);
   const [doesProductExist, setDoesProductExist] = useState(false);
   const [isProductNotFound, setIsProductNotFound] = useState(false);
@@ -42,10 +57,11 @@ const ProductDetails = () => {
   });
   const [newReview, setNewReview] = useState({
     rating: 0,
-    text: "",
+    description: "",
     media: [],
   });
   const { id } = useParams();
+  let currentUserId = null;
 
   const nextImage = () => {
     if (product.images && product.images.length > 0) {
@@ -89,17 +105,58 @@ const ProductDetails = () => {
 
   const handleFileUpload = (event) => {
     if (event.target.files) {
+      const selectedFiles = Array.from(event.target.files);
+      const totalFiles = newReview.media.length + selectedFiles.length;
+      if (totalFiles > 5) {
+        alert("You can only upload upto 5 files");
+        return;
+      }
       setNewReview((prev) => ({
         ...prev,
         media: [...prev.media, ...Array.from(event.target.files)],
       }));
     }
   };
+  async function checkIfAbleToReview() {
+    const data = await checkIfAbleToReviewService(id);
+    console.log(data);
+    if (data.data.status === "failed") setIsAbleToReview(false);
+    else if (data.status === "success") setIsAbleToReview(true);
+  }
+  async function handleSubmit(e) {
+    e.preventDefault();
+    console.log(newReview);
+    setIsReviewSubmitting(true);
+    const formData = new FormData();
+    formData.append("productId", product._id);
+    formData.append("rating", newReview.rating);
+    formData.append("description", newReview.description);
+    if (newReview.media.length > 0)
+      newReview.media.forEach((file) => {
+        formData.append("images", file);
+      });
+    const data = await createReviewService(formData);
+    console.log(data);
+    setIsReviewSubmitting(false);
+    successToastMessage("Review Added Successfully");
+    fetchAllReviews();
+    checkIfAbleToReview()
+  }
   useEffect(() => {
     // topRef.current?.scrollIntoView({behavior:"smooth"})
     window.scrollTo(0, 0);
   }, [isProductLoading]);
 
+  async function checkIfLoggedIn() {
+    const { data } = await checkLogin();
+    console.log(data);
+    if (data.status === "success") {
+      setIsLoggedIn(true);
+      currentUserId = data.user._id;
+      return;
+    }
+    setIsLoggedIn(false);
+  }
   async function addToCart() {
     // console.log(product)
     // console.log(selectedSize)
@@ -149,23 +206,89 @@ const ProductDetails = () => {
   //   checkProductExists()
   // },[doesProductExist])
 
-
   //reviews releated
-  async function fetchAllReviews(){
-    setIsReviewLoading(true)
-    const data = await getReviewsByProductService(id)
-    // console.log(data)
-    setProductReviews(data.data)
-    setIsReviewLoading(false)
+  async function fetchAllReviews() {
+    setIsReviewLoading(true);
+    const data = await getReviewsByProductService(id);
+    console.log(data);
+    if (data.status === "failed") {
+      return;
+    }
+    if (currentUserId||currentUser) {
+      console.log("currentuser",currentUser);
+      let nonCurrentUserReviews
+      let currentUserReview
+      if(currentUser){
+        nonCurrentUserReviews = data.data.filter(
+          (review) => review.userId._id !== currentUser
+        );
+        currentUserReview = data.data.filter(
+          (review) => review.userId._id === currentUser
+        );
+      }else {
+        nonCurrentUserReviews = data.data.filter(
+          (review) => review.userId._id !== currentUserId
+        );
+        currentUserReview = data.data.filter(
+          (review) => review.userId._id === currentUserId
+        );
+      }
+      console.log(nonCurrentUserReviews);
+      console.log(currentUserReview);
+      // console.log("c",currentUserId)
+      if(currentUserId)
+        setCurrentUser(currentUserId);
+      else
+        setCurrentUser(currentUser)
+      console.log("reviews", data.data);
+      setProductReviews([...currentUserReview, ...nonCurrentUserReviews]);
+    } else {
+      console.log("had no choice")
+      setProductReviews(data.data);
+    }
+    setIsReviewLoading(false);
   }
   useEffect(() => {
+    checkIfLoggedIn();
+    checkIfAbleToReview();
     fetchProductDetails();
-    fetchAllReviews()
+    fetchAllReviews();
   }, []);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editedDescription, setEditedDescription] =useState("");
 
+  async function handleEditSave (id) {
+    try {
+      setIsSaving(true)
+      const formData = new FormData()
+      formData.append("description",editedDescription)
+      const data = await updateReviewService(id, formData);
+      console.log("updated",data)
+      setIsSaving(false)
+      console.log("user",currentUser)
+      fetchAllReviews()
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating review:", error);
+    }
+  };
 
-
-
+  async function handleDelete(id) {
+    try {
+      // Add your API call to delete the review here
+      // await deleteReview(review._id);
+      setIsDeleting(true)
+      const data = await deleteReviewService(id)
+      console.log("deleted",data)
+      setIsDeleting(false)
+      setShowDeleteModal(false);
+      checkIfAbleToReview()
+      fetchAllReviews()
+    } catch (error) {
+      console.error("Error deleting review:", error);
+    }
+  };
   return (
     <>
       {isProductLoading ? (
@@ -421,192 +544,352 @@ const ProductDetails = () => {
                   </h2>
 
                   {/* Write a Review */}
-                  <div className="bg-gray-50 p-6 rounded-xl mb-8">
-                    <h3 className="text-xl font-semibold mb-4">
-                      Write a Review
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Rating
-                        </label>
-                        <div className="flex space-x-2">
-                          {[1, 2, 3, 4, 5].map((rating) => (
-                            <button
-                              key={rating}
-                              onClick={() =>
-                                setNewReview((prev) => ({ ...prev, rating }))
-                              }
-                              className="focus:outline-none"
-                            >
-                              <Star
-                                className={`h-6 w-6 ${
-                                  rating <= newReview.rating
-                                    ? "text-yellow-400 fill-current"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            </button>
-                          ))}
-                        </div>
+                  {!isLoggedIn ? (
+                    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm text-center max-w-xl mx-auto mt-10">
+                      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                        You're not logged in
+                      </h2>
+                      <p className="text-gray-600 mb-4">
+                        To leave a review or access this feature, please log in
+                        or create an account.
+                      </p>
+                      <div className="flex justify-center gap-4">
+                        <button
+                          onClick={() => navigate("/login")}
+                          className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                        >
+                          Login
+                        </button>
+                        <button
+                          onClick={() => navigate("/signup")}
+                          className="px-6 py-2 rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
+                        >
+                          Sign Up
+                        </button>
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Your Review
-                        </label>
-                        <textarea
-                          value={newReview.text}
-                          onChange={(e) =>
-                            setNewReview((prev) => ({
-                              ...prev,
-                              text: e.target.value,
-                            }))
-                          }
-                          rows={4}
-                          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          placeholder="Share your experience with this product..."
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Add Photos/Videos
-                        </label>
-                        <div className="flex items-center space-x-4">
-                          <label className="cursor-pointer">
-                            <input
-                              type="file"
-                              multiple
-                              accept="image/*,video/*"
-                              className="hidden"
-                              onChange={handleFileUpload}
-                            />
-                            <div className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                              <Upload className="h-5 w-5 text-gray-600" />
-                              <span className="text-sm text-gray-600">
-                                Upload Media
-                              </span>
-                            </div>
+                    </div>
+                  ) : isAbleToReview ? (
+                    //review writing form
+                    <div className="bg-gray-50 p-6 rounded-xl mb-8">
+                      <h3 className="text-xl font-semibold mb-4">
+                        Write a Review
+                      </h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Rating
                           </label>
                           <div className="flex space-x-2">
-                            {newReview.media.map((file, index) => (
-                              <div key={index} className="relative h-16 w-16">
-                                <img
-                                  src={URL.createObjectURL(file)}
-                                  alt=""
-                                  className="h-full w-full object-cover rounded-lg"
+                            {[1, 2, 3, 4, 5].map((rating) => (
+                              <button
+                                key={rating}
+                                onClick={() =>
+                                  setNewReview((prev) => ({ ...prev, rating }))
+                                }
+                                className="focus:outline-none"
+                              >
+                                <Star
+                                  className={`h-6 w-6 ${
+                                    rating <= newReview.rating
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
+                                  }`}
                                 />
-                                <button
-                                  onClick={() =>
-                                    setNewReview((prev) => ({
-                                      ...prev,
-                                      media: prev.media.filter(
-                                        (_, i) => i !== index
-                                      ),
-                                    }))
-                                  }
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
-                      </div>
 
-                      <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                        Submit Review
-                      </button>
-                    </div>
-                  </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Your Review
+                          </label>
+                          <textarea
+                            value={newReview.description}
+                            onChange={(e) =>
+                              setNewReview((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
+                            rows={4}
+                            className="w-full p-2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            placeholder="Share your experience with this product..."
+                          />
+                        </div>
 
-                  {/* Reviews List */}
-                  <div className="space-y-8">
-                    {
-                      isReviewLoading?<Loader></Loader>:
-                      
-                    productReviews?.map((review) => (
-                      <div
-                        key={review._id}
-                        className="border-b border-gray-200 pb-8"
-                      >
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <h4 className="font-semibold text-lg">
-                              {review.userId.name}
-                            </h4>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 bg-transparent ${
-                                      i < review.rating
-                                        ? "text-yellow-400 fill-current"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Add Photos/Videos
+                          </label>
+
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+                            {/* Upload Button */}
+                            <label className="cursor-pointer inline-block mb-3 sm:mb-0">
+                              <input
+                                type="file"
+                                multiple
+                                accept="image/*,video/*"
+                                className="hidden"
+                                onChange={handleFileUpload}
+                              />
+                              <div className="flex items-center max-w-[200px] space-x-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 transition duration-150 shadow-sm">
+                                <Upload className="h-5 w-5 text-gray-600" />
+                                <span className="text-sm text-gray-700">
+                                  Upload Media
+                                </span>
                               </div>
-                              <span className="text-sm text-gray-500">
-                                {new Date(
-                                  review.reviewedDate
-                                ).toLocaleDateString()}
-                              </span>
+                            </label>
+
+                            {/* Media Preview Grid */}
+                            <div className="flex flex-wrap gap-2">
+                              {newReview.media.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="relative w-16 h-16 sm:w-24 sm:h-24"
+                                >
+                                  <img
+                                    src={URL.createObjectURL(file)}
+                                    alt=""
+                                    className="w-full h-full object-cover rounded-md border border-gray-300"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      setNewReview((prev) => ({
+                                        ...prev,
+                                        media: prev.media.filter(
+                                          (_, i) => i !== index
+                                        ),
+                                      }))
+                                    }
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
 
-                        <p className="text-gray-600 mb-4">
-                          {review.description}
-                        </p>
-
-                        {(review.images || review.videos) &&
-                          (review.images.length > 0 ||
-                            review.videos.length > 0) && (
-                            <div className="flex space-x-4 overflow-x-auto pb-2">
-                              {/* for review images */}
-                              {review.images?.map((media, index) => (
-                                <button
-                                  key={`img-${index}`}
-                                  onClick={() =>
-                                    openModal(review.images, index, "image")
-                                  }
-                                  className="relative flex-shrink-0 h-24 w-24 rounded-lg overflow-hidden group"
-                                >
-                                  <img
-                                    src={media.url}
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                  />
-                                </button>
-                              ))}
-                              {/* for review videos */}
-                              {review.videos?.map((media, index) => (
-                                <button
-                                  key={`vid-${index}`}
-                                  onClick={() =>
-                                    openModal(review.videos, index, "video")
-                                  }
-                                  className="relative flex-shrink-0 h-24 w-24 rounded-lg overflow-hidden group"
-                                >
-                                  <img
-                                    src="/images/video-icon.png"
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-                                    {/* <Play className="h-8 w-8 text-white" /> */}
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          )}
+                        <button
+                          disabled={isReviewSubmitting}
+                          onClick={(e) => {
+                            handleSubmit(e);
+                          }}
+                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                        >
+                          {isReviewSubmitting
+                            ? "Submitting..."
+                            : "Submit Review"}
+                        </button>
                       </div>
-                    ))
-                    }
+                    </div>
+                  ) : (
+                    //thanks for review
+                    <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 shadow-sm mb-8">
+                      <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        Thank you for your feedback!
+                      </h3>
+                      <p className="text-sm sm:text-base">
+                        You've already reviewed this product. We appreciate you
+                        sharing your experience with the community.
+                      </p>
+                      <p className="mt-2 text-sm text-green-600 italic">
+                        Only one review is allowed per product.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Reviews List */}
+                  <div className="space-y-8">
+                    {isReviewLoading ? (
+                      <Loader></Loader>
+                    ) : (
+                      productReviews?.map((review) => {
+                        return (
+                          <div
+                            key={review._id}
+                            className="border-b border-gray-200 pb-8 mb-8 relative"
+                          >
+                            {/* Review Header */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                              <div>
+                                <h4 className="font-semibold text-gray-800 text-lg">
+                                  {review.userId.name}
+                                  {review.userId._id === currentUser && (
+                                    <span className="text-sm text-blue-600 ml-2">
+                                      (You)
+                                    </span>
+                                  )}
+                                </h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-5 w-5 ${
+                                          i < review.rating
+                                            ? "text-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm text-gray-500">
+                                    {new Date(
+                                      review.reviewedDate
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {review.userId._id === currentUser &&
+                                !isEditing && (
+                                  <div className="flex gap-3 sm:mt-0">
+                                    <button
+                                      onClick={() => {
+                                        setEditedDescription(review.description)
+                                        setIsEditing(true)
+
+                                      }}
+                                      className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 transition-colors"
+                                    >
+                                      <PencilIcon className="h-4 w-4" />
+                                      <span className="text-sm">Edit</span>
+                                    </button>
+                                    <button
+                                      onClick={() => setShowDeleteModal(true)}
+                                      className="flex items-center gap-1.5 text-red-600 hover:text-red-800 transition-colors"
+                                    >
+                                      <TrashIcon className="h-4 w-4" />
+                                      <span className="text-sm">Delete</span>
+                                    </button>
+                                  </div>
+                                )}
+                            </div>
+
+                            {/* Review Content */}
+                            {isEditing && review.userId._id === currentUser ? (
+                              <div className="space-y-4">
+                               
+                                <textarea
+                                  value={editedDescription}
+                                  onChange={(e) =>
+                                    setEditedDescription(e.target.value)
+                                  }
+                                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  rows="4"
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                  disabled={isSaving}
+                                    onClick={() => {
+                                      setEditedDescription(review.description);
+                                      setIsEditing(false);
+                                    }}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                  disabled={isSaving}
+                                    onClick={()=>handleEditSave(review._id)}
+                                    className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
+                                  >
+                                   {
+                                    isSaving?"Saving...":"Save Changes"
+                                   } 
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-gray-700 leading-relaxed mb-4">
+                                {review.description}
+                              </p>
+                            )}
+
+                            {/* Media Preview */}
+                            {(review.images?.length > 0 ||
+                              review.videos?.length > 0) && (
+                              <div className="flex gap-3 overflow-x-auto pb-2">
+                                {/* Existing media preview code */}
+                                {review.images?.map((media, index) => (
+                                  <button
+                                    key={`img-${index}`}
+                                    onClick={() =>
+                                      openModal(review.images, index, "image")
+                                    }
+                                    className="relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border border-gray-300 hover:ring-2 hover:ring-gray-400 transition"
+                                  >
+                                    <img
+                                      src={media.url}
+                                      alt=""
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </button>
+                                ))}
+
+                                {/* Videos */}
+                                {review.videos?.map((media, index) => (
+                                  <button
+                                    key={`vid-${index}`}
+                                    onClick={() =>
+                                      openModal(review.videos, index, "video")
+                                    }
+                                    className="relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border border-gray-300 hover:ring-2 hover:ring-gray-400 transition group"
+                                  >
+                                    <video
+                                      src={media.url}
+                                      className="w-full h-full object-cover"
+                                      muted
+                                      playsInline
+                                      preload="metadata"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition">
+                                      <Play className="h-8 w-8 text-white" />
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Delete Confirmation Modal */}
+                            {showDeleteModal && review.userId._id === currentUser&& (
+                              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-xl p-6 max-w-md w-full">
+                                  <h3 className="text-lg font-semibold mb-4">
+                                    Delete Review
+                                  </h3>
+                                  <p className="text-gray-600 mb-6">
+                                    Are you sure you want to delete this review?
+                                    This action cannot be undone.
+                                  </p>
+                                  <div className="flex justify-end gap-3">
+                                    <button
+                                      onClick={() => setShowDeleteModal(false)}
+                                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={()=>handleDelete(review._id)}
+                                      className="px-2 sm:px-4 py-2 text-sm sm:text-lg bg-red-600 text-white hover:bg-red-700 rounded-lg"
+                                    >
+                                      {
+                                        isDeleting?"Deleting...":"Delete Review"
+                                      }
+                                      
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 

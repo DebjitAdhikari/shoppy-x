@@ -10,7 +10,9 @@ export async function createReview(req,res,next) {
         if (!userId  || !rating || !description || !productId) {
             return res.status(400).json({ status: "failed", message: "All fields are required" });
         }
-
+        console.log(req.files)
+        console.log(rating,description,productId)
+         
         const product = await Product.findById(productId)
         if(!product)
             return res.status(400).json({
@@ -61,6 +63,11 @@ export async function createReview(req,res,next) {
             videos:videoUrls
         })
         product.reviews.push(newReview._id)
+        //fetch all the updated reviews for the product
+        const allReviews = await Review.find({productId})
+        const totalRating = allReviews.reduce((acc,cur)=>acc+cur.rating,0)
+        const avgRating = totalRating/product.reviews.length
+        product.rating=avgRating.toFixed(1)
         await product.save()
         res.status(201).json({
             status:"success",
@@ -93,15 +100,18 @@ export async function hasReviewed(req,res,next) {
                 status:"failed",
                 message:"all fields are required"
             })
+        
         const review = await Review.findOne({userId,productId})    
         if(review)
-            return res.status(200).json({
+            return res.status(400).json({
                 status:"failed",
+                userId:req.user._id,
                 message:"You already reviewed this product"
             })    
         res.status(201).json({
             status:"success",
             message:"You can review",
+            userId:req.user._id,
             data:true
         })
     } catch (err) {
@@ -117,7 +127,7 @@ export async function getReview(req,res,next) {
                 message:"Review not found"
             })    
         res.status(201).json({
-            message:"success",
+            status:"success",
             data:review
         })
     } catch (err) {
@@ -134,7 +144,7 @@ export async function getReviewsByProductId(req,res,next) {
                 message:"No reviews for this product found"
             })    
         res.status(201).json({
-            message:"success",
+            status:"success",
             data:reviews
         })
     } catch (err) {
@@ -143,7 +153,9 @@ export async function getReviewsByProductId(req,res,next) {
 }
 export async function updateReview(req,res,next) {
     try {
-        const review = await Review.findByIdAndUpdate(req.params.id,req.body,{
+        console.log(req.body)
+        const {description} = req.body
+        const review = await Review.findByIdAndUpdate(req.params.id,{description},{
             new:true,
             runValidators:true
         })    
@@ -153,7 +165,7 @@ export async function updateReview(req,res,next) {
                 message:"Review not found"
             })    
         res.status(201).json({
-            message:"success",
+            status:"success",
             data:review
         })
     } catch (err) {
@@ -176,7 +188,7 @@ export async function deleteReview(req,res,next) {
         await Promise.all(reviewVideos||[])
         await Review.findByIdAndDelete(review._id)
         res.status(201).json({
-            message:"success",
+            status:"success",
             data:null
         })
     } catch (err) {
