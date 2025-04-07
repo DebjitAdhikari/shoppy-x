@@ -67,7 +67,7 @@ export async function createReview(req,res,next) {
         const allReviews = await Review.find({productId})
         const totalRating = allReviews.reduce((acc,cur)=>acc+cur.rating,0)
         const avgRating = totalRating/product.reviews.length
-        product.rating=avgRating.toFixed(1)
+        product.rating=Number(avgRating.toFixed(1))
         await product.save()
         res.status(201).json({
             status:"success",
@@ -198,7 +198,7 @@ export async function deleteReview(req,res,next) {
         const remainingReviews = await Review.find({productId:review.productId})
         const totalRatings = remainingReviews.reduce((acc,curr)=>acc+curr.rating,0)
         const avgRating = remainingReviews.length>0?totalRatings/remainingReviews.length:0
-        product.rating=avgRating.toFixed(1)
+        product.rating=Number(avgRating.toFixed(1))
         await product.save()
         res.status(201).json({
             status:"success",

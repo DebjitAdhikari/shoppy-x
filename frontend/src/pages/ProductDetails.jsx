@@ -30,6 +30,7 @@ import checkIfAbleToReviewService from "../services/reviews/checkIfAbleToReviewS
 import checkLogin from "../services/users/checkLogin.js";
 import updateReviewService from "../services/reviews/updateReviewService.js";
 import deleteReviewService from "../services/reviews/deleteReviewService.js";
+import ReviewDescription from "../components/ReviewDescription.jsx";
 const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [productReviews, setProductReviews] = useState([]);
@@ -140,8 +141,8 @@ const ProductDetails = () => {
       });
     const data = await createReviewService(formData);
     // console.log(data);
+    // successToastMessage("Review Added Successfully");
     setIsReviewSubmitting(false);
-    successToastMessage("Review Added Successfully");
     fetchAllReviews();
     fetchProductDetails()
     checkIfAbleToReview()
@@ -267,6 +268,7 @@ const ProductDetails = () => {
       // console.log("updated",data)
       setIsSaving(false)
       // console.log("user",currentUser)
+      // successToastMessage("Review Updated successfully")
       fetchAllReviews()
       setIsEditing(false);
     } catch (error) {
@@ -280,6 +282,7 @@ const ProductDetails = () => {
       const data = await deleteReviewService(id)
       // console.log("deleted",data)
       setIsDeleting(false)
+      // successToastMessage("Review Deleted Successfully")
       setShowDeleteModal(false);
       checkIfAbleToReview()
       fetchAllReviews()
@@ -805,7 +808,8 @@ const ProductDetails = () => {
                               </div>
                             ) : (
                               <p className="text-gray-700 leading-relaxed mb-4">
-                                {review.description}
+                                
+                                <ReviewDescription description={review.description}></ReviewDescription>
                               </p>
                             )}
 
