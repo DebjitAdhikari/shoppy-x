@@ -48,6 +48,9 @@ const ProductDetails = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editedDescription, setEditedDescription] =useState("");
   const topRef = useRef();
   const navigate = useNavigate();
   const [modalMedia, setModalMedia] = useState({
@@ -119,13 +122,13 @@ const ProductDetails = () => {
   };
   async function checkIfAbleToReview() {
     const data = await checkIfAbleToReviewService(id);
-    console.log(data);
+    // console.log(data);
     if (data.data.status === "failed") setIsAbleToReview(false);
     else if (data.status === "success") setIsAbleToReview(true);
   }
   async function handleSubmit(e) {
     e.preventDefault();
-    console.log(newReview);
+    // console.log(newReview);
     setIsReviewSubmitting(true);
     const formData = new FormData();
     formData.append("productId", product._id);
@@ -136,10 +139,11 @@ const ProductDetails = () => {
         formData.append("images", file);
       });
     const data = await createReviewService(formData);
-    console.log(data);
+    // console.log(data);
     setIsReviewSubmitting(false);
     successToastMessage("Review Added Successfully");
     fetchAllReviews();
+    fetchProductDetails()
     checkIfAbleToReview()
   }
   useEffect(() => {
@@ -149,7 +153,7 @@ const ProductDetails = () => {
 
   async function checkIfLoggedIn() {
     const { data } = await checkLogin();
-    console.log(data);
+    // console.log(data);
     if (data.status === "success") {
       setIsLoggedIn(true);
       currentUserId = data.user._id;
@@ -210,12 +214,12 @@ const ProductDetails = () => {
   async function fetchAllReviews() {
     setIsReviewLoading(true);
     const data = await getReviewsByProductService(id);
-    console.log(data);
+    // console.log(data);
     if (data.status === "failed") {
       return;
     }
     if (currentUserId||currentUser) {
-      console.log("currentuser",currentUser);
+      // console.log("currentuser",currentUser);
       let nonCurrentUserReviews
       let currentUserReview
       if(currentUser){
@@ -233,17 +237,16 @@ const ProductDetails = () => {
           (review) => review.userId._id === currentUserId
         );
       }
-      console.log(nonCurrentUserReviews);
-      console.log(currentUserReview);
+      // console.log(nonCurrentUserReviews);
+      // console.log(currentUserReview);
       // console.log("c",currentUserId)
       if(currentUserId)
         setCurrentUser(currentUserId);
       else
         setCurrentUser(currentUser)
-      console.log("reviews", data.data);
+      // console.log("reviews", data.data);
       setProductReviews([...currentUserReview, ...nonCurrentUserReviews]);
     } else {
-      console.log("had no choice")
       setProductReviews(data.data);
     }
     setIsReviewLoading(false);
@@ -254,19 +257,16 @@ const ProductDetails = () => {
     fetchProductDetails();
     fetchAllReviews();
   }, []);
-  const [isEditing, setIsEditing] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editedDescription, setEditedDescription] =useState("");
-
+  
   async function handleEditSave (id) {
     try {
       setIsSaving(true)
       const formData = new FormData()
       formData.append("description",editedDescription)
       const data = await updateReviewService(id, formData);
-      console.log("updated",data)
+      // console.log("updated",data)
       setIsSaving(false)
-      console.log("user",currentUser)
+      // console.log("user",currentUser)
       fetchAllReviews()
       setIsEditing(false);
     } catch (error) {
@@ -276,15 +276,14 @@ const ProductDetails = () => {
 
   async function handleDelete(id) {
     try {
-      // Add your API call to delete the review here
-      // await deleteReview(review._id);
       setIsDeleting(true)
       const data = await deleteReviewService(id)
-      console.log("deleted",data)
+      // console.log("deleted",data)
       setIsDeleting(false)
       setShowDeleteModal(false);
       checkIfAbleToReview()
       fetchAllReviews()
+      fetchProductDetails()
     } catch (error) {
       console.error("Error deleting review:", error);
     }
@@ -731,7 +730,7 @@ const ProductDetails = () => {
                                         key={i}
                                         className={`h-5 w-5 ${
                                           i < review.rating
-                                            ? "text-yellow-400"
+                                            ? "text-yellow-400 "
                                             : "text-gray-300"
                                         }`}
                                       />

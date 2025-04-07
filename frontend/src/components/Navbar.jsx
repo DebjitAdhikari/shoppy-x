@@ -7,6 +7,7 @@ import getProductsByQueryService from '../services/products/getProductsByQuerySe
 import getSearchSuggestionsService from '../services/products/getSearchSuggestionsService.js';
 import { ToastContainer } from 'react-toastify';
 import getAllCategoriesService from '../services/categories/getAllCategoriesService.js';
+import getCategoriesForHomePage from '../services/categories/getCategoriesForHomePage.js';
 
 // const categories = [
 //   {
@@ -70,7 +71,7 @@ const Navbar = () => {
   //   checkIsLoggedIn()
   // },[])
   async function fetchAllCategories(){
-    const {data} = await getAllCategoriesService()
+    const {data} = await getCategoriesForHomePage()
     console.log(data)
     setCategories(data.slice(0,5))
   }

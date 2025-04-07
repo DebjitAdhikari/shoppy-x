@@ -180,6 +180,12 @@ export async function deleteReview(req,res,next) {
                 status:"failed",
                 message:"Review not found"
             })   
+        const product = await Product.findById(review.productId)
+        if(!product)
+            return res.status(400).json({
+                status:"failed",
+                message:"product not found"
+            })
         const reviewImages = review.images?.map(img=>cloudinary.uploader.destroy(img.public_id)) 
         const reviewVideos = review.videos?.map(video=>
             cloudinary.uploader.destroy(video.public_id,{resource_type:"video"}))
@@ -187,8 +193,16 @@ export async function deleteReview(req,res,next) {
         await Promise.all(reviewImages||[])
         await Promise.all(reviewVideos||[])
         await Review.findByIdAndDelete(review._id)
+        const filteredProductReviews=product.reviews.filter(id=>id.toString()!==review._id.toString())
+        product.reviews=filteredProductReviews
+        const remainingReviews = await Review.find({productId:review.productId})
+        const totalRatings = remainingReviews.reduce((acc,curr)=>acc+curr.rating,0)
+        const avgRating = remainingReviews.length>0?totalRatings/remainingReviews.length:0
+        product.rating=avgRating.toFixed(1)
+        await product.save()
         res.status(201).json({
             status:"success",
+            message:"Review Deleted Successfully",
             data:null
         })
     } catch (err) {
