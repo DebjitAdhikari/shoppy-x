@@ -1,12 +1,13 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, Package, Tag, FileText, Mail, X, LogOut } from "lucide-react";
+import { Home, ShoppingBag, Package, Tag, FileText, Mail, X, LogOut, Disc3Icon, Ticket } from "lucide-react";
 
 const navItems = [
   { path: "", icon: Home, label: "Home" },
   { path: "categories", icon: ShoppingBag, label: "Categories" },
   { path: "products", icon: Package, label: "Products" },
   { path: "offers", icon: Tag, label: "Offers" },
+  { path: "cupons", icon: Ticket, label: "Cupons" },
   { path: "orders", icon: FileText, label: "Orders" },
   { path: "contact", icon: Mail, label: "Contact" },
 ];
@@ -54,6 +55,7 @@ const Sidebar = ({ onClose,onLogout }) => {
         <button onClick={onLogout} className="w-full flex items-center px-4 py-3 rounded-lg bg-red-500 text-white transition duration-200 hover:bg-red-600">
           <LogOut className="w-5 h-5 mr-3" /> Logout
         </button>
+        
       </div>
     </aside>
   );

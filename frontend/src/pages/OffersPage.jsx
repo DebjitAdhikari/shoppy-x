@@ -1,58 +1,70 @@
-import React, { useEffect, useRef } from 'react';
-import { Timer, ShoppingBag, Gift, TrendingUp } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Timer, ShoppingBag, Gift, TrendingUp} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Offer from '../components/Offer';
 import { Helmet } from 'react-helmet-async';
-
-const offers = [
-  {
-    id: 1,
-    title: 'Summer Collection',
-    description: 'Get up to 30% off on all summer essentials',
-    image: 'https://images.unsplash.com/photo-1523381294911-8d3cead13475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-    discount: '30%',
-    validUntil: 'August 31, 2024',
-    category: 'Summer Fashion',
-    href: '/categories/summer-fashion'
-  },
-  {
-    id: 2,
-    title: 'Winter Clearance',
-    description: 'Massive discounts on winter wear and accessories',
-    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-    discount: '20%',
-    validUntil: 'July 15, 2024',
-    category: 'Winter Collection',
-    href: '/categories/winter-collection'
-  },
-  {
-    id: 3,
-    title: 'Electronics Week',
-    description: 'Special deals on latest gadgets and electronics',
-    image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
-    discount: '25%',
-    validUntil: 'July 20, 2024',
-    category: 'Electronics',
-    href: '/categories/electronics'
-  },
-  {
-    id: 4,
-    title: 'Home Makeover Sale',
-    description: 'Transform your space with amazing discounts on home decor',
-    image: 'https://images.unsplash.com/photo-1449247709967-d4461a6a6103?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
-    discount: '15%',
-    validUntil: 'July 25, 2024',
-    category: 'Home & Living',
-    href: '/categories/home-living'
-  }
-];
+import getAllOffersService from "../services/offers/getAllOffersService.js"
+import scrollToPageTop from "../utils/scrollToPageTop.js"
+import Loader from "../components/Loader.jsx"
+// const offers = [
+//   {
+//     id: 1,
+//     title: 'Summer Collection',
+//     description: 'Get up to 30% off on all summer essentials',
+//     image: 'https://images.unsplash.com/photo-1523381294911-8d3cead13475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+//     discount: '30%',
+//     validUntil: 'August 31, 2024',
+//     category: 'Summer Fashion',
+//     href: '/categories/summer-fashion'
+//   },
+//   {
+//     id: 2,
+//     title: 'Winter Clearance',
+//     description: 'Massive discounts on winter wear and accessories',
+//     image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+//     discount: '20%',
+//     validUntil: 'July 15, 2024',
+//     category: 'Winter Collection',
+//     href: '/categories/winter-collection'
+//   },
+//   {
+//     id: 3,
+//     title: 'Electronics Week',
+//     description: 'Special deals on latest gadgets and electronics',
+//     image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
+//     discount: '25%',
+//     validUntil: 'July 20, 2024',
+//     category: 'Electronics',
+//     href: '/categories/electronics'
+//   },
+//   {
+//     id: 4,
+//     title: 'Home Makeover Sale',
+//     description: 'Transform your space with amazing discounts on home decor',
+//     image: 'https://images.unsplash.com/photo-1449247709967-d4461a6a6103?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
+//     discount: '15%',
+//     validUntil: 'July 25, 2024',
+//     category: 'Home & Living',
+//     href: '/categories/home-living'
+//   }
+// ];
 
 const OffersPage = () => {
+
+  const [offers,setOffers]=useState()
+  const [isLoading,setisLoading]=useState(false)
+
+  async function fetchAllOffers(){
+    setisLoading(true)
+    const data = await getAllOffersService()
+    console.log("Offer",data)
+    setOffers(data.data)
+    setisLoading(false)
+  }
+
   useEffect(()=>{
-    window.scrollTo({
-      top:0,
-      behavior:"smooth"
-    })
+    scrollToPageTop()
+    fetchAllOffers()
   },[])
   return (
     <>
@@ -134,13 +146,18 @@ const OffersPage = () => {
       </div>
 
       {/* Offers Grid */}
+      {
+        isLoading?<Loader></Loader>:
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {offers.map((offer) => (
-            <Offer key={offer.id} offer={offer}></Offer>
-          ))}
+          {
+          offers?.map((offer) => (
+            <Offer key={offer._id} offer={offer}></Offer>
+          ))
+          }
         </div>
       </div>
+      }
 
       {/* Newsletter Section */}
       {/* <div className="bg-indigo-600 py-16">

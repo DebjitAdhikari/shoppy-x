@@ -25,6 +25,7 @@ import OrdersTab from './pages/AdminPanel/tabs/OrdersTab';
 import ContactTab from './pages/AdminPanel/tabs/ContactTab';
 import AdminLogin from './pages/AdminPanel/tabs/AdminLogin';
 import SearchedProducts from './pages/SearchedProducts';
+import CuponsTab from './pages/AdminPanel/tabs/CuponsTab';
 
 
 // const router=createBrowserRouter([
@@ -135,6 +136,7 @@ const router = createBrowserRouter([
           { path: "categories", element: <CategoriesTab></CategoriesTab>},
           { path: "products", element: <ProductsTab></ProductsTab>},
           { path: "offers", element: <OffersTab></OffersTab>},
+          { path: "cupons", element: <CuponsTab></CuponsTab>},
           { path: "orders", element: <OrdersTab></OrdersTab>},
           { path: "contact", element: <ContactTab></ContactTab>}
         ]
