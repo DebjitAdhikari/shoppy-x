@@ -1,26 +1,70 @@
-import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, X, Trash2, Tag, AlertTriangle } from "lucide-react";
+import getAllCuponsService from "../../../services/cupons/getAllCuponsService";
+import createCuponService from "../../../services/cupons/createCuponService";
+import successToastMessage from "../../../utils/successToastMessage";
+import deleteCuponService from "../../../services/cupons/deleteCuponService";
 
 const CouponsTab = () => {
   const [showModal, setShowModal] = useState(false);
-  const [coupons, setCoupons] = useState([
-    { id: 1, name: "SUMMER10", value: "10% OFF" },
-    { id: 2, name: "WELCOME5", value: "₹50 OFF" },
-    { id: 3, name: "FREESHIP", value: "Free Shipping" },
-  ]);
-  const [newCoupon, setNewCoupon] = useState({ name: "", value: "" });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [cuponIdToDelete, setCuponIdToDelete] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isError,setIsError] = useState(false)
+  const [coupons, setCoupons] = useState([]);
 
-  const handleAddCoupon = (e) => {
+  const [newCoupon, setNewCoupon] = useState({ title: "", discountPrice: "" });
+
+
+  function handleInputChange(e){
+    const {name,value} = e.target
+    setNewCoupon((prev)=>({
+      ...prev,
+      [name]:value
+    }))
+  }
+  async function handleAddCoupon(e) {
     e.preventDefault();
-    const newEntry = {
-      id: Date.now(),
-      name: newCoupon.name,
-      value: newCoupon.value,
-    };
-    setCoupons([...coupons, newEntry]);
-    setNewCoupon({ name: "", value: "" });
+    setIsAdding(true)
+    setIsError(false)
+    const formData = new FormData()
+    formData.append("title",newCoupon.title)
+    formData.append("discountPrice",newCoupon.discountPrice)
+    const data = await createCuponService(formData)
+    if(data.status==="error"){
+      setIsError(true)
+      setIsAdding(false)
+      return
+    }
+
+    console.log(data)
+    setNewCoupon({ title: "", discountPrice: "" });
     setShowModal(false);
+    setIsAdding(false)
+    fetchAllCupons()
+    successToastMessage("Cupon Added Successfully!")
   };
+
+  async function handleCuponDelete (){
+    setIsDeleting(true);
+    const data= await deleteCuponService(cuponIdToDelete)
+    console.log(data)
+    setCuponIdToDelete(null)
+    setIsDeleting(false)
+    setShowDeleteModal(false)
+    fetchAllCupons()
+    successToastMessage("Cupon deleted successfully")
+  };
+  async function fetchAllCupons(){
+    const data = await getAllCuponsService()
+    setCoupons(data.data)
+  }
+ 
+  useEffect(()=>{
+    fetchAllCupons()
+  },[])
+
 
   return (
     <div className="px-4 sm:px-0">
@@ -32,7 +76,7 @@ const CouponsTab = () => {
           className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Add Coupon
+          Add 
         </button>
       </div>
 
@@ -40,20 +84,34 @@ const CouponsTab = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {coupons.map((coupon) => (
           <div
-            key={coupon.id}
-            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 p-5 flex flex-col h-full border-t-4 border-blue-500"
+            key={coupon._id}
+            className="relative group bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-5 transition-all duration-300 hover:scale-105 border-t-4 border-blue-500"
           >
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              {coupon.name}
-            </h3>
-            <p className="text-sm text-gray-600">{coupon.value}</p>
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <Tag className="w-5 h-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {coupon.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(true);
+                  setCuponIdToDelete(coupon._id);
+                }}
+                className="text-red-500 hover:text-red-700 transition"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="mt-3 text-md text-red-400  font-medium">-₹{coupon.discountPrice}</p>
           </div>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Add Coupon Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 p-2 flex justify-center items-center">
           <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-lg">
             <X
               className="absolute top-3 right-3 w-5 h-5 cursor-pointer text-gray-600 hover:text-red-500"
@@ -67,39 +125,75 @@ const CouponsTab = () => {
                 </label>
                 <input
                   type="text"
-                  name="name"
+                  name="title"
                   required
-                  value={newCoupon.name}
-                  onChange={(e) =>
-                    setNewCoupon({ ...newCoupon, name: e.target.value })
-                  }
+                  value={newCoupon.title}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg"
                   placeholder="Enter coupon name"
                 />
               </div>
+              {
+                isError && <p className="text-red-500 text-sm">Cupon Name already exists</p>
+              }
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Value
+                  Discount Price
                 </label>
                 <input
-                  type="text"
-                  name="value"
+                  type="number"
+                  name="discountPrice"
                   required
-                  value={newCoupon.value}
-                  onChange={(e) =>
-                    setNewCoupon({ ...newCoupon, value: e.target.value })
-                  }
+                  value={newCoupon.discountPrice}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Enter discount/value"
+                  placeholder="Enter discount price"
                 />
               </div>
               <button
                 type="submit"
+                disabled={isAdding}
                 className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               >
-                Add Coupon
+                {
+                  isAdding?"Adding...":"Add"
+                }
+                
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 p-2 flex justify-center items-center">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Confirm Delete</h3>
+            <div className="flex items-start p-4 bg-red-50 text-red-600 rounded-lg">
+              <AlertTriangle className="w-6 h-6 mr-3 mt-1" />
+              <p>
+                Are you sure you want to delete this item? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setCuponIdToDelete(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCuponDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

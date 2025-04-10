@@ -10,6 +10,7 @@ import cartRouter from "./routers/cartRouter.js"
 import adminRouter from "./routers/adminRouter.js"
 import bannerRouter from "./routers/bannerRouter.js"
 import offerRouter from "./routers/offerRouter.js"
+import cuponRouter from "./routers/cuponRouter.js"
 import contactRouter from "./routers/contactRouter.js"
 import mailRouter from "./routers/mailRouter.js"
 import reviewRouter from "./routers/reviewRouter.js"
@@ -42,6 +43,7 @@ app.use("/api/v1/cart",cartRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/banners",bannerRouter)
 app.use("/api/v1/offers",offerRouter)
+app.use("/api/v1/cupons",cuponRouter)
 app.use("/api/v1/contact",contactRouter)
 app.use("/api/v1/mail",mailRouter)
 
