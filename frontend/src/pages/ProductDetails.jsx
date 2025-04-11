@@ -462,7 +462,11 @@ const ProductDetails = () => {
                       <h3 className="text-lg font-semibold mb-2 md:mb-3">
                         {product.availableSize && "Select Size"}
                       </h3>
+                      {
+                      
+                        product?.availableSize?.split(",").length>0 &&
                       <div className="flex flex-wrap gap-2 md:gap-3">
+
                         {product.availableSize?.split(",").map((size) => (
                           <button
                             key={size}
@@ -477,6 +481,7 @@ const ProductDetails = () => {
                           </button>
                         ))}
                       </div>
+                      }
                     </div>
 
                     <div className="mb-6 md:mb-8">

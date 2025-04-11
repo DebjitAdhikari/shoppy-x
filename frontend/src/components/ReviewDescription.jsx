@@ -4,7 +4,7 @@ function ReviewDescription({description}) {
     const [isExpanded,setIsExpanded]=useState(false)
 
     return (
-        <p>
+        <>
             {
                 description.length<250?
                 (description):
@@ -25,7 +25,7 @@ function ReviewDescription({description}) {
                     </>)
                 )
             }
-        </p>
+        </>
     )
 }
 

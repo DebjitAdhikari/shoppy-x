@@ -1,15 +1,16 @@
 import axios from "axios"
-export default async function updateCuponService(id,formData){
+export default async function createCouponService(formData){
     try {
-      const {data} = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/cupons/${id}`,
+      const {data} = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/coupons/create`,
         formData,
         { 
           headers:{"Content-Type":"application/json"},
           withCredentials:true
-      }
+        }
       )
       return data
     } catch (err) {
         console.log(err)
+        return err.response.data
     }
 }

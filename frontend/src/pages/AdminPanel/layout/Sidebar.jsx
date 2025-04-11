@@ -7,7 +7,7 @@ const navItems = [
   { path: "categories", icon: ShoppingBag, label: "Categories" },
   { path: "products", icon: Package, label: "Products" },
   { path: "offers", icon: Tag, label: "Offers" },
-  { path: "cupons", icon: Ticket, label: "Cupons" },
+  { path: "coupons", icon: Ticket, label: "Coupons" },
   { path: "orders", icon: FileText, label: "Orders" },
   { path: "contact", icon: Mail, label: "Contact" },
 ];

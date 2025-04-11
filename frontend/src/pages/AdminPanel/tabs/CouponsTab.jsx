@@ -1,70 +1,69 @@
 import { useEffect, useState } from "react";
-import { Plus, X, Trash2, Tag, AlertTriangle } from "lucide-react";
-import getAllCuponsService from "../../../services/cupons/getAllCuponsService";
-import createCuponService from "../../../services/cupons/createCuponService";
+import { Plus, X, Trash2, Tag, AlertTriangle, Ticket, Percent, CirclePercent, CirclePercentIcon, BadgePercent } from "lucide-react";
+import getAllCouponsService from "../../../services/coupons/getAllCouponsService";
+import createCouponService from "../../../services/coupons/createCouponService";
 import successToastMessage from "../../../utils/successToastMessage";
-import deleteCuponService from "../../../services/cupons/deleteCuponService";
+import deleteCouponService from "../../../services/coupons/deleteCouponService";
 
 const CouponsTab = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [cuponIdToDelete, setCuponIdToDelete] = useState(null);
+  const [couponIdToDelete, setCouponIdToDelete] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isError,setIsError] = useState(false)
+  const [isError, setIsError] = useState(false);
   const [coupons, setCoupons] = useState([]);
 
   const [newCoupon, setNewCoupon] = useState({ title: "", discountPrice: "" });
 
-
-  function handleInputChange(e){
-    const {name,value} = e.target
-    setNewCoupon((prev)=>({
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+    setNewCoupon((prev) => ({
       ...prev,
-      [name]:value
-    }))
+      [name]: value,
+    }));
   }
   async function handleAddCoupon(e) {
     e.preventDefault();
-    setIsAdding(true)
-    setIsError(false)
-    const formData = new FormData()
-    formData.append("title",newCoupon.title)
-    formData.append("discountPrice",newCoupon.discountPrice)
-    const data = await createCuponService(formData)
-    if(data.status==="error"){
-      setIsError(true)
-      setIsAdding(false)
-      return
+    setIsAdding(true);
+    setIsError(false);
+    const formData = new FormData();
+    formData.append("title", newCoupon.title);
+    formData.append("discountPrice", newCoupon.discountPrice);
+    const data = await createCouponService(formData);
+    if (data.status === "error") {
+      setIsError(true);
+      setIsAdding(false);
+      return;
     }
 
-    console.log(data)
+    console.log(data);
     setNewCoupon({ title: "", discountPrice: "" });
     setShowModal(false);
-    setIsAdding(false)
-    fetchAllCupons()
-    successToastMessage("Cupon Added Successfully!")
-  };
-
-  async function handleCuponDelete (){
-    setIsDeleting(true);
-    const data= await deleteCuponService(cuponIdToDelete)
-    console.log(data)
-    setCuponIdToDelete(null)
-    setIsDeleting(false)
-    setShowDeleteModal(false)
-    fetchAllCupons()
-    successToastMessage("Cupon deleted successfully")
-  };
-  async function fetchAllCupons(){
-    const data = await getAllCuponsService()
-    setCoupons(data.data)
+    setIsAdding(false);
+    fetchAllCoupons();
+    successToastMessage("Coupon Added Successfully!");
   }
- 
-  useEffect(()=>{
-    fetchAllCupons()
-  },[])
 
+  async function handleCouponDelete() {
+    setIsDeleting(true);
+    const data = await deleteCouponService(couponIdToDelete);
+    console.log(data);
+    setCouponIdToDelete(null);
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+    fetchAllCoupons();
+    successToastMessage("Coupon deleted successfully");
+  }
+  async function fetchAllCoupons() {
+    const data = await getAllCouponsService();
+    console.log(data);
+    setCoupons(data.data);
+  }
+
+  useEffect(() => {
+    fetchAllCoupons();
+  }, []);
 
   return (
     <div className="px-4 sm:px-0">
@@ -76,10 +75,21 @@ const CouponsTab = () => {
           className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Add 
+          Add
         </button>
       </div>
 
+      {coupons.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-10 text-center bg-blue-50 rounded-xl shadow-inner border border-blue-200">
+          <BadgePercent className="text-blue-500"/>
+          <h2 className="text-xl font-semibold text-blue-600">
+            No Coupons Yet
+          </h2>
+          <p className="text-gray-500 mt-1">
+            Start adding coupons to offer discounts to your customers.
+          </p>
+        </div>
+      )}
       {/* Coupon Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {coupons.map((coupon) => (
@@ -97,14 +107,16 @@ const CouponsTab = () => {
               <button
                 onClick={() => {
                   setShowDeleteModal(true);
-                  setCuponIdToDelete(coupon._id);
+                  setCouponIdToDelete(coupon._id);
                 }}
                 className="text-red-500 hover:text-red-700 transition"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
-            <p className="mt-3 text-md text-red-400  font-medium">-₹{coupon.discountPrice}</p>
+            <p className="mt-3 text-md text-red-400  font-medium">
+              -₹{coupon.discountPrice}
+            </p>
           </div>
         ))}
       </div>
@@ -133,9 +145,11 @@ const CouponsTab = () => {
                   placeholder="Enter coupon name"
                 />
               </div>
-              {
-                isError && <p className="text-red-500 text-sm">Cupon Name already exists</p>
-              }
+              {isError && (
+                <p className="text-red-500 text-sm">
+                  Cupon Name already exists
+                </p>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Discount Price
@@ -155,10 +169,7 @@ const CouponsTab = () => {
                 disabled={isAdding}
                 className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               >
-                {
-                  isAdding?"Adding...":"Add"
-                }
-                
+                {isAdding ? "Adding..." : "Add"}
               </button>
             </form>
           </div>
@@ -169,25 +180,28 @@ const CouponsTab = () => {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 p-2 flex justify-center items-center">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">Confirm Delete</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Confirm Delete
+            </h3>
             <div className="flex items-start p-4 bg-red-50 text-red-600 rounded-lg">
               <AlertTriangle className="w-6 h-6 mr-3 mt-1" />
               <p>
-                Are you sure you want to delete this item? This action cannot be undone.
+                Are you sure you want to delete this item? This action cannot be
+                undone.
               </p>
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
-                  setCuponIdToDelete(null);
+                  setCouponIdToDelete(null);
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleCuponDelete}
+                onClick={handleCouponDelete}
                 disabled={isDeleting}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
               >

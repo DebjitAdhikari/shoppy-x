@@ -7,13 +7,20 @@ import CartProduct from "./CartProduct.jsx";
 import updateCartProductService from "../services/cart/updateCartProductService.js";
 import deleteCartProductService from "../services/cart/deleteCartProductService.js";
 import EmptyCart from "./EmptyCart.jsx";
+import getCouponByNameService from "../services/coupons/getCouponsByNameService.js";
 
 function Cart({setIsCartOpen}) {
   const [cartProducts,setCartProducts]=useState([])
   const [totalProducts,setTotalProducts]=useState(0)
   const [totalAmount,setTotalAmount]=useState(0)
+  const [finalAmount,setFinalAmount]=useState(0)
   const [isLoggedIn,setIsLoggedIn]=useState(false)
+  const [coupon, setCoupon] = useState("");
+  const [isValidCoupon, setisValidCoupon] = useState(true);
+  const [isApplied, setIsApplied] = useState(false);
+  const [discountPrice, setDiscountPrice] = useState(0);
   const navigate = useNavigate()
+
   async function hasLoggedIn() {
     const data = await checkLogin()
     console.log("logged cart",data)
@@ -33,6 +40,8 @@ function Cart({setIsCartOpen}) {
     const data = await updateCartProductService(id,formData)
     setCartProducts(data.data.cart)
     setTotalAmount(data.data.cartAmount)
+    if(finalAmount>0)
+      setFinalAmount(data.data.cartAmount-discountPrice)
   }
   async function deleteCartProduct(id){
     const data = await deleteCartProductService(id)
@@ -40,16 +49,39 @@ function Cart({setIsCartOpen}) {
     setCartProducts(data.data.cart)
     setTotalProducts(data.data.cart.length)
     setTotalAmount(data.data.cartAmount)
+    if(finalAmount>0)
+      setFinalAmount(data.data.cartAmount-discountPrice)
   }
   async function fetchAllCartProducts(){
     const {data} = await getCartProductsService()
     console.log(data.cart)
   }
+
+  async function fetchAndApplyCupon(){
+    if(!coupon)
+      return
+    console.log(coupon)
+    setIsApplied(false)
+    setisValidCoupon(true)
+    const data = await getCouponByNameService(coupon)
+    if(data.status==="failed"){
+      setisValidCoupon(false)
+      return
+    }
+    setisValidCoupon(true)
+    setIsApplied(true)
+    console.log(data.data)
+    setDiscountPrice(data.data.discountPrice)
+    setFinalAmount(totalAmount-data.data.discountPrice)
+    
+  }
+
   useEffect(()=>{
     hasLoggedIn()
     fetchAllCartProducts()
   },[])
-    
+
+
     return (
       <>
       {
@@ -84,29 +116,55 @@ function Cart({setIsCartOpen}) {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 px-2 py-6 sm:px-6">
-                  <div className="mb-4">
-                    <div className="flex items-center">
-                      <input
-                        type="text"
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-2 sm:px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button className="px-2 sm:px-4 py-2 bg-gray-900 text-white rounded-r-lg hover:bg-gray-800">
-                        Apply
-                      </button>
-                    </div>
-                  </div>
+                <div className="border-t border-gray-200 px-4 py-6 sm:px-6 bg-white shadow-md rounded-b-lg">
+      <div className="mb-6">
+        <div className="flex flex-wrap items-center">
+          <input
+            type="text"
+            value={coupon}
+            onChange={(e) => setCoupon(e.target.value)}
+            placeholder="Enter coupon code"
+            className="flex-1 px-4 py-2 border w-20 border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+          <button
+            onClick={fetchAndApplyCupon}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-r-lg hover:from-blue-700 hover:to-blue-900 transition"
+          >
+            {isApplied ? "Applied!" : "Apply"}
+          </button>
+        </div>
+        {!isValidCoupon&&(
+          <p className="text-red-500 text-sm">
+            Please enter a valid coupon code
+          </p>
+        )}
+        {isApplied && (
+          <p className="mt-2 text-green-600 text-sm font-medium animate-pulse">
+            Coupon applied successfully!
+          </p>
+        )}
+      </div>
 
-                  <div className="flex justify-between text-base font-medium text-gray-900 mb-4">
-                    <p>Subtotal</p>
-                    <p>₹{totalAmount}</p>
-                  </div>
+      <div className="flex justify-between items-center text-base font-medium text-gray-900 mb-4">
+        <p>Subtotal</p>
+        <div className="text-right">
+          {isApplied ? (
+            <>
+              <p className="line-through text-gray-400">₹{totalAmount}</p>
+              <p className="text-green-600 font-semibold text-lg transition-all duration-300">
+                ₹{finalAmount}
+              </p>
+            </>
+          ) : (
+            <p className="text-lg font-semibold">₹{totalAmount}</p>
+          )}
+        </div>
+      </div>
 
-                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
-                    Proceed to Checkout
-                  </button>
-                </div>
+      <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-300">
+        Proceed to Checkout
+      </button>
+    </div>
                   
                   </>
                 }
