@@ -28,6 +28,7 @@ import SearchedProducts from './pages/SearchedProducts';
 import CouponsTab from './pages/AdminPanel/tabs/CouponsTab';
 
 
+
 // const router=createBrowserRouter([
 //   {
 //     element:<AppLayout></AppLayout>,
@@ -120,7 +121,7 @@ const router = createBrowserRouter([
       },
       {
         path:"/profile",
-        element:<Profile></Profile>
+        element:<Profile ></Profile>
       },
       {
         path:"/order/:orderId",

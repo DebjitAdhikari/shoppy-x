@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, X, Trash2, Tag, AlertTriangle, Ticket, Percent, CirclePercent, CirclePercentIcon, BadgePercent } from "lucide-react";
+import { Plus, X, Trash2, Tag, AlertTriangle, BadgePercent } from "lucide-react";
 import getAllCouponsService from "../../../services/coupons/getAllCouponsService";
 import createCouponService from "../../../services/coupons/createCouponService";
 import successToastMessage from "../../../utils/successToastMessage";

@@ -261,7 +261,7 @@ const Navbar = () => {
               </div>
 
               <Link 
-                to="/profile" 
+                to="/profile?tab=me" 
                 className={`p-2 hover:bg-gray-100 rounded-full ${
                   isActivePath('/profile') ? 'bg-gray-100' : ''
                 }`}

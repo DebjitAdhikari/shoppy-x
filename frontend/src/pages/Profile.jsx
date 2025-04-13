@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { User, Package, Heart, CreditCard, Settings, LogOut, Camera, Upload } from 'lucide-react';
 import { Bounce, ToastContainer, toast } from 'react-toastify';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from "lucide-react";
 import getMyDetails from '../services/users/getMyDetails';
 import logout from '../services/users/logout.js';
@@ -11,14 +11,16 @@ import uploadMyPhoto from '../services/users/uploadMyPhoto.js';
 import updateMyPassword from '../services/users/updateMyPassword.js';
 import deleteMyPhoto from '../services/users/deleteMyPhoto.js';
 import { Helmet } from 'react-helmet-async';
+import getUserOrdersService from '../services/orders/getUserOrdersService.js';
 
 const tabs = [
-  { name: 'Personal Info', icon: User },
-  { name: 'Orders', icon: Package }
+  { name: 'Personal Info', paramValue:"me", icon: User },
+  { name: 'Orders', paramValue:"orders",icon: Package }
 ];
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('Personal Info');
+  const [userOrders,setUserOrders] = useState([])
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedFile,setSelectedFile]=useState(null)
@@ -32,6 +34,7 @@ const Profile = () => {
   const [hasAnythingChanged,setHasAnythingChanged]=useState(false)
   const [isImageUploading,setIsImageUploading]=useState(false)
   const [isSaving,setIsSaving]=useState(false)
+  const [isLoading,setIsLoading]=useState(false)
   const [isDeleting,setIsDeleting]=useState(false)
   const [isIncorrectPassword,setIsIncorrectPassword]=useState(false)
   const [hasSamePassword,setHasSamePassword]=useState(true)
@@ -49,7 +52,14 @@ const Profile = () => {
     state:""
   })
   const navigate = useNavigate()
+  const [searchParams,setSearchParams]=useSearchParams()
 
+  function restrictProfileTab(){
+    const profileTab = searchParams.get("tab")
+    console.log(profileTab)
+    if(profileTab!=="orders" && profileTab!=="me")
+      setSearchParams({tab:"me"})
+  }
   //helper function for this page
   function successToast(message){
     toast.success(message, {
@@ -188,30 +198,11 @@ const Profile = () => {
     }
 
   }
-  // const user = {
-  //   
-  //   orders: [
-  //     {
-  //       id: 'ORD-123456',
-  //       date: '2024-03-15',
-  //       total: 299.97,
-  //       status: 'Delivered',
-  //       items: 3
-  //     },
-  //     {
-  //       id: '#ORD-123457',
-  //       date: '2024-03-10',
-  //       total: 149.99,
-  //       status: 'Processing',
-  //       items: 1
-  //     }
-  //   ]
-  // };
-
+  
   async function fetchUserDetails(){
     try {
       const userdetails= await getMyDetails()
-      // console.log(userdetails.data)
+      console.log(userdetails.data)
       setUser(userdetails.data)
       // console.log(userdetails.data.profileImage.public_id.split("/")[2])
       setUserAddress({
@@ -231,6 +222,19 @@ const Profile = () => {
       throw new Error(err)
     }
   }
+  async function fetchUserOrders(){
+    try {
+      setIsLoading(true)
+      const {data}= await getUserOrdersService()
+      console.log(data)
+      setUserOrders(data)
+      setIsLoading(false)
+      // console.log(userdetails.data.profileImage.public_id.split("/")[2])
+      
+    } catch (err) {
+      throw new Error(err)
+    }
+  }
   
   
 
@@ -238,7 +242,9 @@ const Profile = () => {
   useEffect(()=>{
     window.scrollTo(0,0)
     checkIsLoggedIn()
+    restrictProfileTab()
     fetchUserDetails()
+    fetchUserOrders()
   },[])
 
   return (
@@ -306,9 +312,9 @@ const Profile = () => {
                 return (
                   <button
                     key={tab.name}
-                    onClick={() => setActiveTab(tab.name)}
+                    onClick={() => setSearchParams({tab:tab.paramValue})}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
-                      activeTab === tab.name
+                      searchParams.get("tab") === tab.paramValue
                         ? 'bg-gray-900 text-white'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
@@ -329,7 +335,7 @@ const Profile = () => {
         {/* Main Content */}
         <div className="flex-1">
           <div className="bg-white rounded-xl shadow-sm p-6">
-            {activeTab === 'Personal Info' && (
+            {searchParams.get("tab") === 'me' && (
               <>
               <div>
                 <h3 className="text-xl font-semibold mb-6">Personal Information</h3>
@@ -531,32 +537,34 @@ const Profile = () => {
               </>
             )}
 
-            {/* {activeTab === 'Orders' && (
+            {searchParams.get("tab") === 'orders' && (
               <div>
                 <h3 className="text-xl font-semibold mb-6">Order History</h3>
                 <div className="space-y-4">
-                  {user?.orders.map((order) => (
+                  {userOrders?.map((order) => (
                     <div
-                      key={order.id}
+                      key={order.orderId}
                       className="border border-gray-200 rounded-lg p-4 hover:border-gray-300"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{order.id}</span>
+                        <span className="font-medium">{order.orderId}</span>
                         <span className={`px-3 py-1 rounded-full text-sm ${
-                          order.status === 'Delivered'
+                          order.status === 'delivered'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {order.status}
+                          {order.orderStatus.toLowerCase()
+                          .split(" ")
+                          .map(word=> word.charAt(0).toUpperCase()+word.slice(1)).join(" ")}
                         </span>
                       </div>
                       <div className="text-sm text-gray-600">
-                        <p>Date: {new Date(order.date).toLocaleDateString()}</p>
-                        <p>Items: {order.items}</p>
-                        <p>Total: ₹{order.total.toFixed(2)}</p>
+                        <p>Date: {new Date(order.createdAt).toLocaleDateString()}</p>
+                        <p>Items: {order.products.length}</p>
+                        <p>Total: ₹{order.orderPrice}</p>
                       </div>
                       <Link
-                        to={`/order/${order.id}`}
+                        to={`/order/${order.orderId}`}
                         className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center"
                       >
                         View Details
@@ -566,7 +574,7 @@ const Profile = () => {
                   ))}
                 </div>
               </div>
-            )} */}
+            )}
           </div>
         </div>
       </div>

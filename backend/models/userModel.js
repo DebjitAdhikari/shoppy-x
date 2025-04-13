@@ -84,7 +84,11 @@ const userSchema = new mongoose.Schema({
     cartAmount:{
         type:Number,
         default:0
-    }
+    },
+    orders:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Order"
+    }]
 },{timestamps:true})
 
 userSchema.pre("save",async function (next){
@@ -92,6 +96,7 @@ userSchema.pre("save",async function (next){
     this.password = await bcrypt.hash(this.password,12)
     next()
 })
+
 userSchema.methods.checkPassword=async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword,this.password)
 }

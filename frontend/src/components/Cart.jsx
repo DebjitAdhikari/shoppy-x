@@ -8,6 +8,8 @@ import updateCartProductService from "../services/cart/updateCartProductService.
 import deleteCartProductService from "../services/cart/deleteCartProductService.js";
 import EmptyCart from "./EmptyCart.jsx";
 import getCouponByNameService from "../services/coupons/getCouponsByNameService.js";
+import createOrderService from "../services/orders/createOrderService.js";
+import Order from "../../../backend/models/orderModel.js";
 
 function Cart({setIsCartOpen}) {
   const [cartProducts,setCartProducts]=useState([])
@@ -75,7 +77,23 @@ function Cart({setIsCartOpen}) {
     setFinalAmount(totalAmount-data.data.discountPrice)
     
   }
-
+  async function submitOrder(){
+    console.log(cartProducts)
+    // no need to use form data
+    const products = cartProducts.map(product=>({
+        productId:product.productId,
+        name:product.name,
+        image:product.image,
+        quantity:product.quantity
+      }))
+    const orderData = {
+      products,
+      orderStatus:"placed",
+      orderPrice:finalAmount>0?finalAmount:totalAmount
+    }
+    const data = await createOrderService(orderData)
+    console.log(data)
+  }
   useEffect(()=>{
     hasLoggedIn()
     fetchAllCartProducts()
@@ -161,7 +179,7 @@ function Cart({setIsCartOpen}) {
         </div>
       </div>
 
-      <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-300">
+      <button onClick={submitOrder} className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-300">
         Proceed to Checkout
       </button>
     </div>
