@@ -3,7 +3,7 @@ import { User, Package, Heart, CreditCard, Settings, LogOut, Camera, Upload } fr
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from "lucide-react";
-import getMyDetails from '../services/users/getMyDetails';
+import getMyDetails from '../services/users/getMyDetails.js';
 import logout from '../services/users/logout.js';
 import checkLogin from '../services/users/checkLogin.js';
 import updateMyDetails from '../services/users/updateMyDetails.js';
