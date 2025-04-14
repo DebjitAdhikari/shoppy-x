@@ -9,7 +9,6 @@ import deleteCartProductService from "../services/cart/deleteCartProductService.
 import EmptyCart from "./EmptyCart.jsx";
 import getCouponByNameService from "../services/coupons/getCouponsByNameService.js";
 import createOrderService from "../services/orders/createOrderService.js";
-import Order from "../../../backend/models/orderModel.js";
 
 function Cart({setIsCartOpen}) {
   const [cartProducts,setCartProducts]=useState([])
