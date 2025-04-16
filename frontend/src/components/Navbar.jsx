@@ -9,38 +9,6 @@ import { ToastContainer } from 'react-toastify';
 import getAllCategoriesService from '../services/categories/getAllCategoriesService.js';
 import getCategoriesForHomePage from '../services/categories/getCategoriesForHomePage.js';
 
-// const categories = [
-//   {
-//     name: "Women's Fashion",
-//     href: '/category/womens-fashion',
-//     image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80'
-//   },
-//   {
-//     name: "Men's Fashion",
-//     href: '/category/mens-fashion',
-//     image: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80'
-//   },
-//   {
-//     name: 'Electronics',
-//     href: '/category/electronics',
-//     image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-//   },
-//   {
-//     name: 'Home & Kitchen',
-//     href: '/category/home-kitchen',
-//     image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-//   },
-//   {
-//     name: 'Beauty & Health',
-//     href: '/category/beauty-health',
-//     image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-//   },
-//   {
-//     name: 'Sports & Outdoors',
-//     href: '/category/sports-outdoors',
-//     image: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-//   },
-// ];
 
 
 
@@ -58,18 +26,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  
-  // async function checkIsLoggedIn() {
-  //   const data = await checkLogin()
-  //   console.log("for nav bar cart",data)
-  //   if(data.status==="failed" && data.message==="Not Logged in")
-  //     setIsLoggedIn(false)
-  //   else if(data.data.status==="success")
-  //     setIsLoggedIn(true)
-  // }
-  // useEffect(()=>{
-  //   checkIsLoggedIn()
-  // },[])
+ 
   async function fetchAllCategories(){
     const {data} = await getCategoriesForHomePage()
     console.log(data)
@@ -435,7 +392,7 @@ const Navbar = () => {
       {/* Cart Sidebar */}
       {isCartOpen && (
         <Cart setIsCartOpen={setIsCartOpen} 
-        
+        setTotalItem={setTotalItem}
         >
         </Cart>
       

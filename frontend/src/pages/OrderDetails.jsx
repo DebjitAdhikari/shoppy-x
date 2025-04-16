@@ -1,87 +1,57 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Package, Truck, ArrowLeft, MapPin, Clock, TicketCheck } from 'lucide-react';
 import getOrdersByOrderIdService from '../services/orders/getOrdersByOrderIdService.js';
 import Loader from "../components/Loader.jsx"
+import ErrorPage from './ErrorPage.jsx';
 const OrderDetails = () => {
   const { orderId } = useParams();
   const [order,setOrder]=useState(null)
   const [isLoading,setIsLoading]=useState(false)
+  const [doesOrderExist,setDoesOrderExist]=useState(true)
   const [userDetails,setUserDetails]=useState(null)
   // Mock order data
-  // const order = {
-  //   id: orderId,
-  //   date: '2024-03-15',
-  //   status: 'Delivered',
-  //   total: 299.97,
-  //   shipping: 9.99,
-  //   tax: 24.99,
-  //   address: {
-  //     name: 'Debjit Adhikari',
-  //     street: 'Park Street, 32',
-  //     city: 'Kolkata',
-  //     state: 'West Bengal',
-  //     zip: '70001',
-  //     country: 'India'
-  //   },
-  //   items: [
-  //     {
-  //       id: 1,
-  //       name: 'Wireless Headphones',
-  //       price: 129.99,
-  //       quantity: 1,
-  //       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'
-  //     },
-  //     {
-  //       id: 2,
-  //       name: 'Smart Watch',
-  //       price: 169.98,
-  //       quantity: 2,
-  //       image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'
-  //     }
-  //   ],
-  //   timeline: [
-  //       {
-  //           title: 'Order Placed',
-  //           status:"done",
-  //           date: '2024-03-12 15:20',
-  //           description: 'Order confirmed and payment received'
-  //         },
-  //         {
-  //           title: 'Shipped',
-  //           status:"done",
-  //           date: '2024-03-13 10:30',
-  //           description: 'Package has been shipped'
-  //         },
-  //         {
-  //           title: 'In Transit',
-  //           status:"done",
-  //           date: '2024-03-14 18:45',
-  //           description: 'Package arrived at local facility'
-  //         },
-  //         {
-  //           title: 'Out for Delivery',
-  //           status:"progress",
-  //           date: '2024-03-15 09:15',
-  //           description: 'Package is out for delivery'
-  //         },  
-  //     {
-  //       title: 'Delivered',
-  //       status:"progress",
-  //       date: '2024-03-15 14:30',
-  //       description: 'Package delivered to recipient'
-  //     },
-      
-      
-      
-  //   ]
-  // };
+  const orderTimelineTemplate =[
+        {
+            title: 'Order Placed',
+            status:"done",
+            date: '2024-03-12 15:20',
+            description: 'Order confirmed and payment received'
+          },
+          {
+            title: 'Shipped',
+            status:"done",
+            date: '2024-03-13 10:30',
+            description: 'Package has been shipped'
+          },
+          {
+            title: 'In Transit',
+            status:"done",
+            date: '2024-03-14 18:45',
+            description: 'Package arrived at local facility'
+          },
+          {
+            title: 'Out for Delivery',
+            status:"progress",
+            date: '2024-03-15 09:15',
+            description: 'Package is out for delivery'
+          },  
+      {
+        title: 'Delivered',
+        status:"progress",
+        date: '2024-03-15 14:30',
+        description: 'Package delivered to recipient'
+      }, 
+    ];
 
+    const navigate = useNavigate()
   async function fetchOrderDetails(){
     setIsLoading(true)
     const {data} = await getOrdersByOrderIdService(orderId)
     console.log(data)
-    setOrder(data.order[0])
+    if(data.status==="failed")
+      setDoesOrderExist(false)
+    setOrder(data.order)
     setUserDetails(data.user)
     setIsLoading(false)
   }
@@ -93,6 +63,7 @@ const OrderDetails = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       {
         isLoading?<Loader></Loader>:
+        !doesOrderExist?<ErrorPage customErrorMessage=" Order doesn't exist"></ErrorPage>:
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -143,9 +114,9 @@ const OrderDetails = () => {
                         <p className="mt-1 text-sm text-gray-500">
                           Quantity: {item.quantity}
                         </p>
-                        {/* <p className="mt-1 text-lg font-medium text-gray-900">
-                        ₹{item.price.toFixed(2)}
-                        </p> */}
+                        <p className="mt-1 text-lg font-medium text-gray-900">
+                        ₹{item.price}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -155,21 +126,21 @@ const OrderDetails = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">₹{order?.orderPrice}</span>
+                    <span className="font-medium">₹{order?.totalPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Shipping</span>
                     <span className="font-medium">₹0</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="font-medium">₹0</span>
+                    <span className="text-gray-600">Discount</span>
+                    <span className="font-medium">₹{order?.totalPrice-order?.finalPrice}</span>
                   </div>
                   <div className="pt-2 border-t border-gray-200">
                     <div className="flex justify-between text-lg font-medium">
                       <span>Total</span>
                       {/* <span>₹{(order.total + order.shipping + order.tax).toFixed(2)}</span> */}
-                      <span>₹{order?.orderPrice}</span>
+                      <span>₹{order?.finalPrice}</span>
                     </div>
                   </div>
                 </div>
@@ -177,18 +148,18 @@ const OrderDetails = () => {
             </div>
 
             {/* Tracking Timeline */}
-            {/* <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-6">Order Timeline</h2>
               <div className="space-y-8">
-                {order.timeline.map((event, index) => (
+                {order?.orderStatusTimeline.map((event, index) => (
                   <div key={index} className="relative">
-                    {index !== order.timeline.length - 1 && (
+                    {index !== order.orderStatusTimeline.length - 1 && (
                       <div className="absolute top-6 left-4 -bottom-10 w-0.5 bg-gray-200" />
                     )}
                     <div className="relative flex items-start">
                       <div className={`flex items-center justify-center w-8 h-8 rounded-full 
-                    ${event.status==="progress"?"bg-blue-100 text-blue-600":"bg-green-100 text-green-600"} `}>
-                        {event.status === "progress" ? (
+                    ${!event.status?"bg-blue-100 text-blue-600":"bg-green-100 text-green-600"} `}>
+                        {!event.status  ? (
                           <Clock className="h-4 w-4" />
                         ) : (
                           <TicketCheck className="h-4  w-4" />
@@ -198,18 +169,23 @@ const OrderDetails = () => {
                         <h3 className="text-lg font-medium text-gray-900">
                           {event.title}
                         </h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {event.description}
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {new Date(event.date).toLocaleString()}
-                        </p>
+                        {
+                          event.status && 
+                          <>
+                            <p className="mt-1 text-sm text-gray-500">
+                              {event.description}
+                            </p>
+                            <p className="mt-1 text-sm text-gray-500">
+                              {event.date?new Date(event.date).toLocaleString("en-IN"):""}
+                            </p>
+                          </>
+                        }
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div> */}
+            </div>
           </div>
 
           {/* Shipping Information */}

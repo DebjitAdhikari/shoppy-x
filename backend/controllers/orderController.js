@@ -3,11 +3,11 @@ import Order from "../models/orderModel.js";
 export async function createOrder(req,res,next){
     try {
         const user = req.user
-        const {products,orderPrice,orderStatus} = req.body
+        const {products,totalPrice,finalPrice,orderStatus} = req.body
         // console.log(req.body)
         // console.log(user)
         console.log(products)
-        if(products.length===0||!orderPrice||!orderStatus)
+        if(products.length===0||!totalPrice ||!finalPrice ||!orderStatus)
             return res.status(400).json({
                 status:"failed",
                 message:"Fields are required"
@@ -15,8 +15,37 @@ export async function createOrder(req,res,next){
         const newOrder={
             user:user._id,
             products,
-            orderPrice,
-            orderStatus
+            totalPrice,
+            finalPrice,
+            orderStatus,
+            orderStatusTimeline: [
+                {
+                  title: "Order Placed",
+                  status: true,
+                  description: "Order confirmed",
+                  date: new Date(),
+                },
+                {
+                  title: "Shipped",
+                  status: false,
+                  description: "Package has been shipped",
+                },
+                {
+                  title: "In Transit",
+                  status: false,
+                  description: "Package arrived at local facility",
+                },
+                {
+                  title: "Out for Delivery",
+                  status: false,
+                  description: "Package is out for delivery",
+                },
+                {
+                  title: "Delivered",
+                  status: false,
+                  description: "Package delivered to recipient",
+                },
+              ],
         }
         const order= await Order.create(newOrder)
         user.orders.push(order._id)
@@ -61,12 +90,13 @@ export async function getOrdersByOrderId(req,res,next){
     try {
         const user = req.user
         const {orderId}=req.params
-        const order= await Order.find({orderId:orderId})
-        if(!order)
+        const order= await Order.findOne({orderId:orderId})
+        if( !order)
             return res.status(400).json({
                 status:"failed",
                 message:"No orders found"
             })
+        console.log(order)
         res.status(200).json({
             status:"success",
             data:{

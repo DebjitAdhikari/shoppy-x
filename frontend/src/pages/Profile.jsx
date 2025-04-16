@@ -540,6 +540,20 @@ const Profile = () => {
             {searchParams.get("tab") === 'orders' && (
               <div>
                 <h3 className="text-xl font-semibold mb-6">Order History</h3>
+                {
+                  userOrders.length===0?<div className="text-center py-10 px-4 bg-white rounded-lg shadow-sm border border-dashed border-gray-300">
+                  <div className="flex justify-center mb-4">
+                    <Package className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No Orders Yet</h3>
+                  <p className="text-sm text-gray-500">You haven't placed any orders. When you do, they'll show up here!</p>
+                  <Link
+                    to="/"
+                    className="mt-4 inline-block bg-blue-600 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition-all duration-200"
+                  >
+                    Start Shopping
+                  </Link>
+                </div>:
                 <div className="space-y-4">
                   {userOrders?.map((order) => (
                     <div
@@ -561,7 +575,7 @@ const Profile = () => {
                       <div className="text-sm text-gray-600">
                         <p>Date: {new Date(order.createdAt).toLocaleDateString()}</p>
                         <p>Items: {order.products.length}</p>
-                        <p>Total: ₹{order.orderPrice}</p>
+                        <p>Total: ₹{order.finalPrice}</p>
                       </div>
                       <Link
                         to={`/order/${order.orderId}`}
@@ -573,6 +587,7 @@ const Profile = () => {
                     </div>
                   ))}
                 </div>
+                }
               </div>
             )}
           </div>

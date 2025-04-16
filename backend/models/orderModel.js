@@ -9,6 +9,14 @@ const orderSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"
     },
+    orderStatusTimeline: [
+        {
+          title: { type: String, required: true },
+          status: { type: Boolean, default: false },
+          description: { type: String, required: true },
+          date: { type: Date },
+        },
+      ],
     orderStatus:String,
     products:[{
         productId:mongoose.Schema.Types.ObjectId,
@@ -20,7 +28,8 @@ const orderSchema = new mongoose.Schema({
             default:1
         }
     }],
-    orderPrice:Number
+    totalPrice:Number,
+    finalPrice:Number
 },{timestamps:true})
 orderSchema.pre("save",async function(next){
     if(!this.isNew) return next()

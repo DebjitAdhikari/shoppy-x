@@ -83,13 +83,17 @@ function Cart({setIsCartOpen}) {
         productId:product.productId,
         name:product.name,
         image:product.image,
-        quantity:product.quantity
+        quantity:product.quantity,
+        price:product.quantity*product.price
       }))
     const orderData = {
       products,
       orderStatus:"placed",
-      orderPrice:finalAmount>0?finalAmount:totalAmount
+      // orderPrice:finalAmount>0?finalAmount:totalAmount
+      totalPrice:totalAmount,
+      finalPrice:finalAmount>0?finalAmount:totalAmount
     }
+    console.log(products)
     const data = await createOrderService(orderData)
     console.log(data)
   }
