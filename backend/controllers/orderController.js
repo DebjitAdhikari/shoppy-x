@@ -86,6 +86,34 @@ export async function getAllUserOrders(req,res,next){
         next(err)
     }
 }
+export async function getAllOrders(req,res,next){
+    try {
+        const orders= await Order.find().populate({
+            path:"user",
+            select:"name"
+        })
+        if(!orders)
+            return res.status(400).json({
+                status:"failed",
+                message:"No orders found"
+            })
+        res.status(200).json({
+            status:"success",
+            data:orders
+            // data:{
+            //     user:{
+            //         name:user.name,
+            //         contactNo:user.contactNo,
+            //         adress:user.address
+            //     },
+            //     orders
+            // }
+        })
+    
+    } catch (err) {
+        next(err)
+    }
+}
 export async function getOrdersByOrderId(req,res,next){
     try {
         const user = req.user

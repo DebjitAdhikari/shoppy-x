@@ -5,6 +5,8 @@ import * as orderController from "../controllers/orderController.js"
 const router = express.Router()
 router.route("/create")
     .post(userController.protectRoute,orderController.createOrder)
+router.route("/getAll")
+    .get(orderController.getAllOrders)
 router.route("/getUserOrders")
     .get(userController.protectRoute,orderController.getAllUserOrders)
 router.route("/:orderId")
