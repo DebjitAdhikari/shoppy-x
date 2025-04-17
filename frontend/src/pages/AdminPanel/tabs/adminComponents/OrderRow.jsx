@@ -1,4 +1,5 @@
 import { Edit2 } from "lucide-react"
+import getStatusDate from "../../../../utils/getStatusDate.js"
 
 function OrderRow({order,handleEditClick,getStatusColor}) {
     
@@ -7,17 +8,9 @@ function OrderRow({order,handleEditClick,getStatusColor}) {
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.orderId}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.user.name}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{order.finalPrice}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{
-        (()=>{
-            const matchedStatusDate = order.orderStatusTimeline.find(
-                s=>s.title.toLowerCase().includes(order.orderStatus.toLowerCase()) && s.date 
-            )
-            return matchedStatusDate? new Date(matchedStatusDate.date).toLocaleString():"-"
-        })()
-      
-      }</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getStatusDate(order)}</td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.orderStatus)}`}>
+        <span className={`px-3 py-1 rounded-full text-xs capitalize font-semibold ${getStatusColor(order.orderStatus)}`}>
           {order.orderStatus}
         </span>
       </td>

@@ -100,21 +100,14 @@ export async function getAllOrders(req,res,next){
         res.status(200).json({
             status:"success",
             data:orders
-            // data:{
-            //     user:{
-            //         name:user.name,
-            //         contactNo:user.contactNo,
-            //         adress:user.address
-            //     },
-            //     orders
-            // }
+            
         })
     
     } catch (err) {
         next(err)
     }
 }
-export async function getOrdersByOrderId(req,res,next){
+export async function getOrderByOrderId(req,res,next){
     try {
         const user = req.user
         const {orderId}=req.params
@@ -135,6 +128,63 @@ export async function getOrdersByOrderId(req,res,next){
                 },
                 order
             }
+        })
+    
+    } catch (err) {
+        next(err)
+    }
+}
+export async function updateOrderById(req,res,next){
+    try {
+        const {orderId}=req.params
+        const {orderStatus} = req.body
+        const order= await Order.findOne({orderId:orderId})
+        if(!order)
+            return res.status(400).json({
+                status:"failed",
+                message:"No orders found"
+            })
+        order.orderStatus=orderStatus
+        let reachedCurrentStatus=false
+        order.orderStatusTimeline.forEach((step)=>{
+            if(!reachedCurrentStatus){
+                step.status=true
+                if(!step.date) step.date=new Date()
+            }else{
+                step.status=false
+                step.date=undefined
+            }
+            if(step.title===orderStatus)
+                reachedCurrentStatus=true
+        })
+        // console.log(order.orderStatusTimeline)
+        await order.save()
+        res.status(200).json({
+            status:"success",
+            data:order
+        })
+    
+    } catch (err) {
+        next(err)
+    }
+}
+export async function getOrderBySearch(req,res,next){
+    try {
+        const user = req.user
+        const {orderId}=req.params
+        const order= await Order.findOne({orderId:orderId}).populate({
+            path:"user",
+            select:"name"
+        })
+        if( !order)
+            return res.status(400).json({
+                status:"failed",
+                message:"Order doesn't exist"
+            })
+        console.log(order)
+        res.status(200).json({
+            status:"success",
+            data:order
         })
     
     } catch (err) {

@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Edit2 } from 'lucide-react';
+import { Search, Edit2, RefreshCw } from 'lucide-react';
 import Modal from '../common/Modal';
 import OrderRow from './adminComponents/OrderRow';
 import getAllOrdersService from '../../../services/orders/getAllOrdersService.js';
+import getOrdersByOrderIdService from '../../../services/orders/getOrdersByOrderIdService.js';
+import getStatusDate from '../../../utils/getStatusDate.js';
+import getSearchedOrderService from '../../../services/orders/getSearchedOrderService.js';
+import Loader from '../../../components/Loader.jsx';
+import SmallLoader from '../../../components/SmallLoader.jsx';
+import updateOrderService from '../../../services/orders/updateOrderService.js';
+import { useSearchParams } from 'react-router-dom';
 
-// Mock data - replace with your actual data fetching logic
-// const mockOrders = Array.from({ length: 50 }, (_, i) => ({
-//   id: `ORD${String(i + 1).padStart(5, '0')}`,
-//   customerName: `Customer ${i + 1}`,
-//   price: Math.floor(Math.random() * 10000) + 500,
-//   status: ['Pending', 'Processing', 'Shipped', 'Delivered'][Math.floor(Math.random() * 4)],
-//   date: new Date(Date.now() - Math.random() * 10000000000).toISOString().split('T')[0]
-// }));
 
-const statusOptions = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+const statusOptions = ["Order Placed", "Shipped", "In Transit","Out for Delivery","Delivered"];
 
 function OrdersTab() {
   const [orders,setOrders] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQueryId, setSearchQueryId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -25,6 +24,9 @@ function OrdersTab() {
   const [editStatus, setEditStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [doesOrderExist, setDoesOrderExist] = useState(false);
+  const [isOrderSearching, setIsOrderSearching] = useState(false);
+
 
   const ordersPerPage = 8;
   const totalPages = Math.ceil(orders.length / ordersPerPage);
@@ -34,11 +36,21 @@ function OrdersTab() {
     currentPage * ordersPerPage
   );
 
-  const handleSearch = () => {
-    const result = orders.find(order => 
-      order.id.toLowerCase() === searchQuery.toLowerCase()
-    );
-    setSearchResult(result || null);
+  async function handleSearch(){
+    console.log(searchQueryId)
+    setSearchResult(null)
+    setIsOrderSearching(true)
+    const {data} = await getSearchedOrderService(searchQueryId.toUpperCase())
+    console.log(data)
+    if(data.status==="failed"){
+      setIsOrderSearching(false)
+      setDoesOrderExist(false)
+      setSearchResult(null)
+      return
+    }
+    setIsOrderSearching(false)
+    setDoesOrderExist(true)
+    setSearchResult(data.data)
   };
 
   const handleEditClick = (order) => {
@@ -47,33 +59,46 @@ function OrdersTab() {
     setShowEditModal(true);
   };
 
-  const handleStatusUpdate = async () => {
+  async function handleStatusUpdate () {
     setIsUpdating(true);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const updatedOrders = orders.map(order => 
-      order.id === selectedOrder.id ? { ...order, status: editStatus } : order
-    );
-    
-    if (searchResult && searchResult.id === selectedOrder.id) {
-      setSearchResult({ ...searchResult, status: editStatus });
-    }
-    
+    console.log(selectedOrder)
+    console.log(editStatus)
+    const formData = new FormData()
+    formData.append("orderStatus",editStatus)
+    const data = await updateOrderService(selectedOrder.orderId,formData)
+    console.log(data)
+    fetchAllOrders()
     setIsUpdating(false);
     setShowEditModal(false);
   };
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
-      case 'placed': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'shipped': return 'bg-purple-100 text-purple-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'order placed': 
+        return 'bg-amber-100 text-amber-700'; // warm yellow-orange
+      case 'shipped': 
+        return 'bg-violet-100 text-violet-700'; // bold and clean
+      case 'in transit': 
+        return 'bg-indigo-100 text-indigo-700'; // deep and stable
+      case 'out for delivery': 
+        return 'bg-cyan-100 text-cyan-700'; // bright and fresh
+      case 'delivered': 
+        return 'bg-emerald-100 text-emerald-700'; // successful and happy
+      default: 
+        return 'bg-gray-100 text-gray-700'; // fallback neutral
     }
   };
 
+  const [searchParams,setSearchParams]=useSearchParams()
+  
+  function restrictOrdersTab(){
+    const page = searchParams.get("page")
+    if(!page) {
+      setSearchParams({page:1})
+      return
+    }
+  }
   async function fetchAllOrders(){
     setIsLoading(true)
     const {data} = await getAllOrdersService()
@@ -81,7 +106,9 @@ function OrdersTab() {
     setOrders(data)
     setIsLoading(false)
   }
+
   useEffect(()=>{
+    restrictOrdersTab()
     fetchAllOrders()
   },[])
   
@@ -100,8 +127,8 @@ function OrdersTab() {
               type="text"
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               placeholder="Enter Order ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchQueryId}
+              onChange={(e) => setSearchQueryId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
@@ -112,8 +139,8 @@ function OrdersTab() {
             Search
           </button>
         </div>
-
-        {searchResult && (
+        {
+          isOrderSearching ? <SmallLoader customMessage="Searching..."/>:searchResult ? (
           <div className="mt-6 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -131,69 +158,74 @@ function OrdersTab() {
               </tbody>
             </table>
           </div>
-        )}
+        ):<p className="mt-4 text-sm text-gray-500">Please enter a valid order ID</p>
+        }
         
-        {searchQuery && !searchResult && (
-          <p className="mt-4 text-sm text-gray-500">No order found with ID: {searchQuery}</p>
-        )}
+       
       </div>
 
       {/* All Orders Section */}
+      
       <div className="bg-white rounded-2xl shadow-md p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6">All Orders</h2>
         
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentOrders.map((order) => (
-                <OrderRow key={order.id} order={order} getStatusColor={getStatusColor} handleEditClick={handleEditClick} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-8 flex justify-center">
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+        {
+          isLoading?<SmallLoader customMessage="Loading..."/>:
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentOrders.map((order) => (
+                    <OrderRow key={order._id} order={order} getStatusColor={getStatusColor} handleEditClick={handleEditClick} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          {/* Pagination */}
+          <div className="mt-8 flex justify-center">
+            <div className="flex flex-wrap justify-center gap-2">
               <button
-                key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-3 py-2 border rounded-lg ${
-                  currentPage === i + 1
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-50 text-black"
-                }`}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {i + 1}
+                Previous
               </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-3 py-2 border rounded-lg ${
+                    currentPage === i + 1
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-50 text-black"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+          </>
+        }
+
       </div>
 
       {/* Edit Status Modal */}
@@ -219,7 +251,7 @@ function OrdersTab() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Date</p>
-                {/* <p className="mt-1 text-sm text-gray-900">{selectedOrder?.date}</p> */}
+                <p className="mt-1 text-sm text-gray-900">{selectedOrder && getStatusDate(selectedOrder)}</p>
               </div>
             </div>
           </div>

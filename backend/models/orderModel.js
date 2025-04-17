@@ -11,6 +11,7 @@ const orderSchema = new mongoose.Schema({
     },
     orderStatusTimeline: [
         {
+            _id:false,
           title: { type: String, required: true },
           status: { type: Boolean, default: false },
           description: { type: String, required: true },

@@ -88,7 +88,7 @@ function Cart({setIsCartOpen}) {
       }))
     const orderData = {
       products,
-      orderStatus:"placed",
+      orderStatus:"Order Placed",
       // orderPrice:finalAmount>0?finalAmount:totalAmount
       totalPrice:totalAmount,
       finalPrice:finalAmount>0?finalAmount:totalAmount
