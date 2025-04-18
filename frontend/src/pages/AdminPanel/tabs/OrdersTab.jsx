@@ -10,6 +10,7 @@ import Loader from '../../../components/Loader.jsx';
 import SmallLoader from '../../../components/SmallLoader.jsx';
 import updateOrderService from '../../../services/orders/updateOrderService.js';
 import { useSearchParams } from 'react-router-dom';
+import getOrdersByPage from '../../../services/orders/getOrdersByPage.js';
 
 
 const statusOptions = ["Order Placed", "Shipped", "In Transit","Out for Delivery","Delivered"];
@@ -19,6 +20,8 @@ function OrdersTab() {
   const [searchQueryId, setSearchQueryId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editStatus, setEditStatus] = useState('');
@@ -28,16 +31,8 @@ function OrdersTab() {
   const [isOrderSearching, setIsOrderSearching] = useState(false);
 
 
-  const ordersPerPage = 8;
-  const totalPages = Math.ceil(orders.length / ordersPerPage);
-
-  const currentOrders = orders.slice(
-    (currentPage - 1) * ordersPerPage,
-    currentPage * ordersPerPage
-  );
-
   async function handleSearch(){
-    console.log(searchQueryId)
+    // console.log(searchQueryId)
     setSearchResult(null)
     setIsOrderSearching(true)
     const {data} = await getSearchedOrderService(searchQueryId.toUpperCase())
@@ -94,23 +89,30 @@ function OrdersTab() {
   
   function restrictOrdersTab(){
     const page = searchParams.get("page")
-    if(!page) {
+    if(!page || page<1) {
       setSearchParams({page:1})
       return
     }
   }
   async function fetchAllOrders(){
+    const page = searchParams.get("page")
+    setCurrentPage(Number(page))
     setIsLoading(true)
-    const {data} = await getAllOrdersService()
+    const data = await getOrdersByPage(page)
     console.log(data)
-    setOrders(data)
+    setOrders(data.data)
+    setTotalPages(data.totalPages)
     setIsLoading(false)
   }
 
   useEffect(()=>{
     restrictOrdersTab()
-    fetchAllOrders()
+    // fetchAllOrders()
   },[])
+  useEffect(()=>{
+    fetchAllOrders()
+  },[searchParams])
+
   
 
   return (
@@ -185,7 +187,7 @@ function OrdersTab() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentOrders.map((order) => (
+                  {orders.map((order) => (
                     <OrderRow key={order._id} order={order} getStatusColor={getStatusColor} handleEditClick={handleEditClick} />
                   ))}
                 </tbody>
@@ -195,7 +197,7 @@ function OrdersTab() {
           <div className="mt-8 flex justify-center">
             <div className="flex flex-wrap justify-center gap-2">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setSearchParams({page:currentPage-1})}
                 disabled={currentPage === 1}
                 className="px-3 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -204,7 +206,7 @@ function OrdersTab() {
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i + 1}
-                  onClick={() => setCurrentPage(i + 1)}
+                  onClick={() => setSearchParams({page:i+1})}
                   className={`px-3 py-2 border rounded-lg ${
                     currentPage === i + 1
                       ? "bg-gray-900 text-white"
@@ -215,7 +217,7 @@ function OrdersTab() {
                 </button>
               ))}
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => setSearchParams({page:currentPage+1})}
                 disabled={currentPage === totalPages}
                 className="px-3 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >

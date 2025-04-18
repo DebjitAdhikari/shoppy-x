@@ -107,6 +107,36 @@ export async function getAllOrders(req,res,next){
         next(err)
     }
 }
+export async function getOrdersByPage(req,res,next){
+    try {
+        const page = parseInt(req.query.page)||1
+        const maxOrdersPerPage = 12
+        const skipAmount = (page-1)*maxOrdersPerPage
+        const totalResults= await Order.countDocuments({})
+        const totalPages = Math.ceil(totalResults/maxOrdersPerPage)
+        console.log(page)
+        const orders= await Order.find().skip(skipAmount).limit(maxOrdersPerPage).populate({
+            path:"user",
+            select:"name"
+        })
+        
+        if(!orders)
+            return res.status(400).json({
+                status:"failed",
+                message:"No orders found"
+            })
+        res.status(200).json({
+            status:"success",
+            totalResults,
+            totalPages,
+            data:orders
+            
+        })
+    
+    } catch (err) {
+        next(err)
+    }
+}
 export async function getOrderByOrderId(req,res,next){
     try {
         const user = req.user

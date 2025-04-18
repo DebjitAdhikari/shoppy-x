@@ -281,13 +281,13 @@ function ProductsTab() {
     setShowDeleteModal(true);
   };
   const [searchParams,setSearchParams]=useSearchParams()
-  const navigate = useNavigate()
+ 
 
   function restrictProductsParams(){
     const page = searchParams.get("page")
-    console.log("the page",page)
-    if(!page)
-      navigate("/admin/products?page=1",{replace:true})
+    // console.log("the page",page)
+    if(!page || page<1)
+      setSearchParams({page:1})
   }
 
   
