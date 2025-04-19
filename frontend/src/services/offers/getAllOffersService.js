@@ -5,5 +5,6 @@ export default async function createAllOffersService(){
       return data
     } catch (err) {
         console.log(err)
+        return err.response.data
     }
 }

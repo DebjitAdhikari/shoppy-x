@@ -23,7 +23,7 @@ const ContactUs = () => {
     e.preventDefault();
     // Handle form submission here
 
-    console.log('Form submitted:', formData);
+    // console.log('Form submitted:', formData);
     setIsSending(true)
     const contactFormData = new FormData()
     contactFormData.append("name",formData.name)
@@ -62,7 +62,7 @@ const ContactUs = () => {
   async function fetchContact() {
     try {
       const { data } = await getContact();
-      console.log("contact", data);
+      // console.log("contact", data);
       setCompanyContact(data);
     } catch (error) {
       console.error("Error fetching contact information:", error);
@@ -117,12 +117,12 @@ const ContactUs = () => {
         </div>
       ) : (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-16">
             <div className="text-center mb-16">
-              <h1 className="text-5xl font-bold text-gray-900 mb-4">
+              <h1 className="text-xl sm:text-5xl font-bold text-gray-900 mb-4">
                 Get in <span className="text-indigo-600">Touch</span>
               </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="sm:text-lg text-gray-600 max-w-2xl mx-auto">
                 Have questions about our products or services? We're here to help. 
                 Fill out the form below and we'll get back to you as soon as possible.
               </p>
@@ -132,7 +132,7 @@ const ContactUs = () => {
               {/* Contact Information */}
               <div className="lg:col-span-1">
                 <div className="bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-8 flex items-center">
+                  <h3 className="sm:text-2xl font-semibold text-gray-900 mb-8 flex items-center">
                     <MessageSquare className="h-6 w-6 text-indigo-600 mr-2" />
                     Contact Information
                   </h3>
@@ -175,7 +175,7 @@ const ContactUs = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-start group">
+                    {/* <div className="flex items-start group">
                       <div className="flex-shrink-0 p-3 bg-indigo-50 rounded-full group-hover:bg-indigo-100 transition-all duration-300">
                         <Clock className="h-6 w-6 text-indigo-600" />
                       </div>
@@ -187,7 +187,7 @@ const ContactUs = () => {
                           Sunday: Closed
                         </p>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Social Media Links */}
@@ -238,7 +238,7 @@ const ContactUs = () => {
               {/* Contact Form */}
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-8 flex items-center">
+                  <h3 className="sm:text-2xl font-semibold text-gray-900 mb-8 flex items-center">
                     <Send className="h-6 w-6 text-indigo-600 mr-2" />
                     Send Us a Message
                   </h3>

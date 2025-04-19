@@ -157,7 +157,7 @@ const CategoryProducts = () => {
     setProducts(data.data);
     setTotalResults(data.totalResults);
     setTotalPages(data.totalPages);
-    console.log(data);
+    // console.log(data);
     setIsLoading(false);
     scrollToPageTop();
   }

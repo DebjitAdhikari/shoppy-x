@@ -9,6 +9,7 @@ import deleteCartProductService from "../services/cart/deleteCartProductService.
 import EmptyCart from "./EmptyCart.jsx";
 import getCouponByNameService from "../services/coupons/getCouponsByNameService.js";
 import createOrderService from "../services/orders/createOrderService.js";
+import successToastMessage from "../utils/successToastMessage.js";
 
 function Cart({setIsCartOpen}) {
   const [cartProducts,setCartProducts]=useState([])
@@ -56,6 +57,8 @@ function Cart({setIsCartOpen}) {
   async function fetchAllCartProducts(){
     const {data} = await getCartProductsService()
     console.log(data.cart)
+    setCartProducts(data.cart)
+    setTotalProducts(data.cart.length)
   }
 
   async function fetchAndApplyCupon(){
@@ -93,9 +96,14 @@ function Cart({setIsCartOpen}) {
       totalPrice:totalAmount,
       finalPrice:finalAmount>0?finalAmount:totalAmount
     }
-    console.log(products)
+    // console.log(products)
     const data = await createOrderService(orderData)
     console.log(data)
+    // if(data.status==="success")
+    //   setCartProducts([])
+    fetchAllCartProducts()
+
+    successToastMessage("Order Confirmed successfully!")
   }
   useEffect(()=>{
     hasLoggedIn()

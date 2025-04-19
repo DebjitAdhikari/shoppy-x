@@ -12,6 +12,7 @@ import updateMyPassword from '../services/users/updateMyPassword.js';
 import deleteMyPhoto from '../services/users/deleteMyPhoto.js';
 import { Helmet } from 'react-helmet-async';
 import getUserOrdersService from '../services/orders/getUserOrdersService.js';
+import Loader from '../components/Loader.jsx';
 
 const tabs = [
   { name: 'Personal Info', paramValue:"me", icon: User },
@@ -44,6 +45,7 @@ const Profile = () => {
     email:"",
     contactNo:""
   })
+  let basicDetails,addressDetails
   const [userAddress,setUserAddress]=useState({
     area:"",
     city:"",
@@ -56,7 +58,7 @@ const Profile = () => {
 
   function restrictProfileTab(){
     const profileTab = searchParams.get("tab")
-    console.log(profileTab)
+    // console.log(profileTab)
     if(profileTab!=="orders" && profileTab!=="me")
       setSearchParams({tab:"me"})
   }
@@ -138,7 +140,7 @@ const Profile = () => {
     formData.append("country",userAddress.country)
     formData.append("postalCode",userAddress.postalCode)
     const data = await updateMyDetails(formData)
-    console.log(data)
+    // console.log(data)
     fetchUserDetails()
     successToast('Details updated successfully!')
     setIsSaving(false)
@@ -201,8 +203,9 @@ const Profile = () => {
   
   async function fetchUserDetails(){
     try {
+      setIsLoading(true)
       const userdetails= await getMyDetails()
-      console.log(userdetails.data)
+      // console.log(userdetails.data)
       setUser(userdetails.data)
       // console.log(userdetails.data.profileImage.public_id.split("/")[2])
       setUserAddress({
@@ -218,6 +221,7 @@ const Profile = () => {
         email: userdetails.data.email || "",
         contactNo: userdetails.data.contactNo || ""
       })
+      setIsLoading(false)
     } catch (err) {
       throw new Error(err)
     }
@@ -226,7 +230,7 @@ const Profile = () => {
     try {
       setIsLoading(true)
       const {data}= await getUserOrdersService()
-      console.log(data)
+      // console.log(data)
       setUserOrders(data)
       setIsLoading(false)
       // console.log(userdetails.data.profileImage.public_id.split("/")[2])
@@ -334,6 +338,8 @@ const Profile = () => {
 
         {/* Main Content */}
         <div className="flex-1">
+          {
+            isLoading?<Loader></Loader>:
           <div className="bg-white rounded-xl shadow-sm p-6">
             {searchParams.get("tab") === 'me' && (
               <>
@@ -591,6 +597,7 @@ const Profile = () => {
               </div>
             )}
           </div>
+          }
         </div>
       </div>
 

@@ -1,123 +1,201 @@
-import React from 'react';
-import { Eye, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import getContact from "../../../services/contact/getContact.js";
+import SmallLoader from "../../../components/SmallLoader"
+import updateContactService from "../../../services/contact/updateContactService.js";
+export default function ContactTab() {
+  const [contactInfo, setContactInfo] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [contactFormData, setContactFormData] = useState({
+    area: "",
+    city: "",
+    country: "",
+    postalCode: "",
+    contactNo: "",
+    email: "",
+  });
 
-const ContactTab = () => {
-  // Example contact messages
-  const messages = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      subject: 'Product Inquiry',
-      message: 'I have a question about your products...',
-      date: '2024-03-15',
-      status: 'Unread',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      subject: 'Order Status',
-      message: 'Could you please check my order status...',
-      date: '2024-03-14',
-      status: 'Read',
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      subject: 'Return Request',
-      message: 'I would like to return my recent purchase...',
-      date: '2024-03-13',
-      status: 'Replied',
-    },
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Unread':
-        return 'bg-red-100 text-red-800';
-      case 'Read':
-        return 'bg-blue-100 text-blue-800';
-      case 'Replied':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  async function fetchContactData(){
+    setIsLoading(true)
+    const {data} = await getContact()
+    // console.log(data[0])
+    // here i will spread so i can access the data outside of address object
+    const allContactData = {
+      ...data[0],
+      ...data[0].address
     }
+    delete allContactData.address
+    setContactInfo(allContactData)
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    fetchContactData()
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setContactFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-8">Contact Messages</h1>
+   async function handleUpdate() {
+    // console.log(contactFormData)
+    setIsUpdating(true)
+    const formData = new FormData()
+    formData.append("email",contactFormData.email)
+    formData.append("contactNo",contactFormData.contactNo)
+    formData.append("area",contactFormData.area)
+    formData.append("city",contactFormData.city)
+    formData.append("country",contactFormData.country)
+    formData.append("postalCode",contactFormData.postalCode)
+    const data = await updateContactService(formData)
+    // console.log(data)
+    setIsUpdating(false)
+    setIsEditing(false)
+    fetchContactData()
+  };
 
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Subject
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {messages.map((message) => (
-                <tr key={message.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-900">{message.name}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-500">{message.email}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-900">{message.subject}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-500">
-                      {new Date(message.date).toLocaleDateString()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(message.status)}`}>
-                      {message.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <Eye className="w-5 h-5" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900">
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  const handleCancel = () => {
+    setContactFormData(contactInfo);
+    setIsEditing(false);
+  };
+
+  function handleEdit(contactData){
+    setContactFormData(contactData)
+    setIsEditing(true)
+  }
+  return (
+    <div className="max-w-3xl mx-auto p-6 sm:p-8 bg-white shadow-lg rounded-2xl">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">
+        Contact Information
+      </h2>
+
+      {isEditing ? (
+        <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Area
+              </label>
+              <input
+                type="text"
+                name="area"
+                value={contactFormData.area}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                City
+              </label>
+              <input
+                type="text"
+                name="city"
+                value={contactFormData.city}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Country
+              </label>
+              <input
+                type="text"
+                name="country"
+                value={contactFormData.country}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Postal Code
+              </label>
+              <input
+                type="text"
+                name="postalCode"
+                value={contactFormData.postalCode}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Phone
+            </label>
+            <input
+              type="text"
+              name="contactNo"
+              value={contactFormData.contactNo}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={contactFormData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex gap-4 mt-4">
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition duration-200"
+              onClick={handleUpdate}
+            >
+              {
+                isUpdating?"Updating...":"Update"
+              }
+              
+            </button>
+            <button
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg transition duration-200"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        isLoading ?<SmallLoader/> : (
+          <div className="space-y-4 text-gray-700">
+            <p>
+              <span className="font-medium text-gray-800">Address:</span>{" "}
+              {`${contactInfo?.area}, ${contactInfo?.city}, ${contactInfo?.country} - ${contactInfo?.postalCode}`}
+            </p>
+            <p>
+              <span className="font-medium text-gray-800">Phone:</span>{" "}
+              {contactInfo?.contactNo}
+            </p>
+            <p>
+              <span className="font-medium text-gray-800">Email:</span>{" "}
+              {contactInfo?.email}
+            </p>
+            <button
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition duration-200"
+              onClick={() => handleEdit(contactInfo)}
+            >
+              Edit
+            </button>
+          </div>
+        )
+      )}
     </div>
   );
-};
-
-export default ContactTab;
+}

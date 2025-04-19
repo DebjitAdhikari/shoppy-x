@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Home, ShoppingBag, Package, Tag, FileText, Mail, X, LogOut, Disc3Icon, Ticket } from "lucide-react";
 
 const navItems = [
-  { path: "", icon: Home, label: "Home" },
+  { path: "/admin", icon: Home, label: "Home" },
   { path: "categories", icon: ShoppingBag, label: "Categories" },
   { path: "products", icon: Package, label: "Products" },
   { path: "offers", icon: Tag, label: "Offers" },
@@ -37,6 +37,7 @@ const Sidebar = ({ onClose,onLogout }) => {
           <NavLink
             key={item.path}
             to={item.path}
+            end={item.path==="/admin"}
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center px-4 py-3 rounded-lg text-gray-700 transition duration-200 hover:bg-gray-100 hover:text-blue-600 ${

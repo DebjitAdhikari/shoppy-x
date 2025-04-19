@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Plus, Edit, Trash, X, AlertTriangle } from "lucide-react";
 import Modal from "../common/Modal";
+import SmallLoader from "../../../components/SmallLoader.jsx"
 import createCategoryService from "../../../services/categories/createCategoryService.js";
 import getAllCategoriesService from "../../../services/categories/getAllCategoriesService.js";
 import successToastMessage from "../../../utils/successToastMessage.js";
@@ -24,6 +25,7 @@ const CategoriesTab = () => {
   const [imageFilePreview, setImageFilePreview] = useState(null);
   const [isError,setIsError] = useState(false)
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef(null);
   function resetAddCategoryForm(){
@@ -83,8 +85,8 @@ const CategoriesTab = () => {
     e.preventDefault();
     setIsUploading(true);
     setIsError(false)
-    console.log("data",newCategory);
-    console.log(imageFile);
+    // console.log("data",newCategory);
+    // console.log(imageFile);
     const formData = new FormData();
     formData.append("title", newCategory.title);
     formData.append("value", newCategory.value);
@@ -92,7 +94,7 @@ const CategoriesTab = () => {
     formData.append("image", imageFile);
    
       const {data} = await createCategoryService(formData);
-      console.log(data);
+      // console.log(data);
       if(data.status==="error"){
         setIsError(true)
         setIsUploading(false)
@@ -113,7 +115,7 @@ const CategoriesTab = () => {
       featuredCategory:category.featuredCategory?"yes":"no"
     })
     setEditCategoryImage(category.image.url)
-    console.log(category)
+    // console.log(category)
     setImageFilePreview(null);
     setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -130,7 +132,7 @@ const CategoriesTab = () => {
     e.preventDefault()
     setIsError(false)
     setIsUploading(true)
-    console.log(editCategory)
+    // console.log(editCategory)
     // console.log(imageFile)
     
     const formData = new FormData()
@@ -145,7 +147,7 @@ const CategoriesTab = () => {
       setIsUploading(false)
       return
     } 
-    console.log("updated",data)
+    // console.log("updated",data)
     setIsUploading(false)
     setShowEditModal(false)
     fetchCategories()
@@ -164,9 +166,11 @@ const CategoriesTab = () => {
   // Example categories
 
   async function fetchCategories() {
+    setIsLoading(true)
     const { data } = await getAllCategoriesService();
-    console.log(data);
+    // console.log(data);
     setCategories(data);
+    setIsLoading(false)
   }
   useEffect(() => {
     fetchCategories();
@@ -185,6 +189,8 @@ const CategoriesTab = () => {
         </button>
       </div>
     {/* categories */}
+    {
+      isLoading?<SmallLoader></SmallLoader>:
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0">
         {categories?.map((category) => (
           <div
@@ -223,6 +229,7 @@ const CategoriesTab = () => {
           </div>
         ))}
       </div>
+    }
         {/* add new category modal */}
       <Modal
         isOpen={showModal}

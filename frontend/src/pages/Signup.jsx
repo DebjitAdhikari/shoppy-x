@@ -57,7 +57,7 @@ const Signup = () => {
     signUpFormData.append("country",formData.country)
     signUpFormData.append("postalCode",formData.pin)
     const data = await signUp(signUpFormData)
-    console.log("got it",data.data.status)
+    // console.log("got it",data.data.status)
     
     if(data.status==="error")
       setIsEmailDuplicate(true)
@@ -73,8 +73,7 @@ const Signup = () => {
     }
     setDoesPasswordMatch(true)
     sendFormSignUp()
-    // Handle signup logic here
-    console.log(formData);
+    // console.log(formData);
   };
 
   return (

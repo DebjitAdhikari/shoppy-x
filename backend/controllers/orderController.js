@@ -48,7 +48,10 @@ export async function createOrder(req,res,next){
               ],
         }
         const order= await Order.create(newOrder)
+        //push the order and empty the cart
         user.orders.push(order._id)
+        user.cart=[]
+        user.cartAmount=0
         await user.save()
         res.status(200).json({
             status:"success",

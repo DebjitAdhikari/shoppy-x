@@ -20,6 +20,7 @@ import selectEditCategory from "../../../utils/selectEditCategory.js";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import getProductsByPageService from "../../../services/products/getProductsByPageService.js";
 import getAllFeaturedProductsService from "../../../services/products/getAllFeaturedProductsService.js";
+import SmallLoader from "../../../components/SmallLoader.jsx";
 
 function ProductsTab() {
   const [allProducts, setAllProducts] = useState([]);
@@ -31,6 +32,8 @@ function ProductsTab() {
   const [showEditProductModal, setShowEditProductModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [featuredProductsLoading, setfeaturedProductsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [totalPages,setTotalPages] = useState(1)
   const [currentPage,setCurrentPage] = useState(1)
@@ -181,8 +184,8 @@ function ProductsTab() {
   // Submit new product
   async function handleAddProductSubmit (e) {
     e.preventDefault();
-    console.log(newProductForm);
-    console.log(newProductImages);
+    // console.log(newProductForm);
+    // console.log(newProductImages);
     if(newProductForm.discount<0 || newProductForm.actualPrice<0||newProductForm.inStock<0)
       return 
     setIsUploading(true)
@@ -204,7 +207,7 @@ function ProductsTab() {
       if (img.file) formData.append("images", img.file);
     });
     const data = await createProductService(formData)
-    console.log(data)
+    // console.log(data)
     setIsUploading(false)
     // console.log(Object.fromEntries(formData.entries()))
     setShowAddProductModal(false);
@@ -218,8 +221,8 @@ function ProductsTab() {
   // Submit edited product
   async function handleEditProductSubmit(e) {
     e.preventDefault();
-    console.log(editProductImages);
-    console.log(editProductForm);
+    // console.log(editProductImages);
+    // console.log(editProductForm);
     if(editProductForm.discount<0 || editProductForm.actualPrice<0||editProductForm.inStock<0)
       return 
     setIsUploading(true);
@@ -245,7 +248,7 @@ function ProductsTab() {
         formData.append("imageUrls", img.preview);
     });
     const data = await updateProductService(editProductForm.id, formData);
-    console.log("updated data ", data);
+    // console.log("updated data ", data);
     data.status === "success" &&
       successToastMessage("Product Updated Successfully");
     setIsUploading(false);
@@ -263,9 +266,9 @@ function ProductsTab() {
 
     const { id } = itemToDelete;
     setIsDeleting(true)
-    console.log("delte item id",id)
+    // console.log("delete item id",id)
     const data = await deleteProductService(id)
-    console.log(data)
+    // console.log(data)
     setIsDeleting(false)
     setShowDeleteModal(false);
     setItemToDelete(null);
@@ -294,18 +297,22 @@ function ProductsTab() {
 
   //fetch featured products
   async function fetchAllFeaturedProducts(){
+    setfeaturedProductsLoading(true)
     const filteredProduct = await getAllFeaturedProductsService();
     setFeaturedProducts(filteredProduct.data)// featured product after updateon not rendering properly
+    setfeaturedProductsLoading(false)
   }
   //fetch products by page
   async function fetchProductsByPage() {
     const page = searchParams.get("page")
+    setProductsLoading(true)
     setCurrentPage(parseInt(page))
     const data = await getProductsByPageService(page);
-    console.log("all Products", data);
+    // console.log("all Products", data);
     setTotalPages(data.totalPages)
   
     setAllProducts(data.data)
+    setProductsLoading(false)
   }
   async function fetchAllCategories() {
     const { data } = await getAllCategoriesService();
@@ -331,7 +338,9 @@ function ProductsTab() {
         allCategories={allCategories}
         allProducts={featuredProducts}
         fetchAllProducts={fetchAllFeaturedProducts}
+        isLoading={featuredProductsLoading}
       ></HomeAdminFeaturedProducts>
+      {/* products */}
       <section className="bg-white mt-4 rounded-2xl shadow-md p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
           <h2 className="text-2xl font-bold text-gray-800">All Products</h2>
@@ -343,114 +352,119 @@ function ProductsTab() {
             Add
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {allProducts?.map((product) => (
-            <div
-              key={product._id}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 group"
-            >
-              <div className="relative">
-                <div className="h-56 bg-gray-100 overflow-hidden">
-                  <img
-                    src={product.images[0].url}
-                    alt={product.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                {product.discount > 0 && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    -{product.discount}%
+        {
+          productsLoading?<SmallLoader></SmallLoader>:
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {allProducts?.map((product) => (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 group"
+                >
+                  <div className="relative">
+                    <div className="h-56 bg-gray-100 overflow-hidden">
+                      <img
+                        src={product.images[0].url}
+                        alt={product.name}
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    {product.discount > 0 && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        -{product.discount}%
+                      </div>
+                    )}
+                    {product.inStock > 0 && (
+                      <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        Only {product.inStock} Left!
+                      </div>
+                    )}
                   </div>
-                )}
-                {product.inStock > 0 && (
-                  <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    Only {product.inStock} Left!
+                  <div className="p-5">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-3">
+                      <span className="text-lg font-bold text-indigo-600">
+                      ₹{(product.finalPrice)}
+                      </span>
+                      {product.discount > 0 && (
+                        <span className="text-sm text-gray-500 line-through">
+                          ₹{product.actualPrice}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {product.availableSize?.split(",")?.map((size, index) => (
+                        <span
+                          key={index}
+                          className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                        >
+                          {size}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4 justify-end">
+                      <button
+                        onClick={() => openEditProductModal(product)}
+                        className="p-2 hover:bg-indigo-100 rounded-full transition-colors duration-200 text-indigo-600"
+                        aria-label="Edit product"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal("product", product._id)}
+                        className="p-2 hover:bg-red-100 rounded-full transition-colors duration-200 text-red-600"
+                        aria-label="Delete product"
+                      >
+                        <Trash className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="p-5">
-                <h3 className="text-lg font-semibold text-gray-800 truncate">
-                  {product.name}
-                </h3>
-                <div className="flex items-center gap-2 mt-3">
-                  <span className="text-lg font-bold text-indigo-600">
-                  ₹{(product.finalPrice)}
-                  </span>
-                  {product.discount > 0 && (
-                    <span className="text-sm text-gray-500 line-through">
-                      ₹{product.actualPrice}
-                    </span>
-                  )}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {product.availableSize?.split(",")?.map((size, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
-                    >
-                      {size}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-3 mt-4 justify-end">
-                  <button
-                    onClick={() => openEditProductModal(product)}
-                    className="p-2 hover:bg-indigo-100 rounded-full transition-colors duration-200 text-indigo-600"
-                    aria-label="Edit product"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal("product", product._id)}
-                    className="p-2 hover:bg-red-100 rounded-full transition-colors duration-200 text-red-600"
-                    aria-label="Delete product"
-                  >
-                    <Trash className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {/* pagination */}
-        <div className="mt-8 sm:mt-12 flex justify-center">
-            <div className="flex flex-wrap justify-center gap-2">
-              <button
-                onClick={() => {
-                  setSearchParams({page:currentPage-1})
-                }}
-                disabled={currentPage === 1}
-                className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              {
-                Array.from({length:totalPages},(_,i)=>(
-                  <button key={i+1}
-                  onClick={()=>{
-                    setSearchParams({page:i+1})
-                  }}
-                  className={
-                    `px-3 sm:px-4 py-2 border rounded-lg 
-                    ${currentPage===i+1?"bg-gray-900 text-white"
-                    :"bg-gray-50 text-black"}`}>
-                    {i+1}
+            {/* pagination */}
+            <div className="mt-8 sm:mt-12 flex justify-center">
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    onClick={() => {
+                      setSearchParams({page:currentPage-1})
+                    }}
+                    disabled={currentPage === 1}
+                    className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
                   </button>
-                ))
-              }
-              
-              <button
-                // onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
-                onClick={() => {
-                  setSearchParams({page:currentPage+1})
-                }}
-                disabled={currentPage === totalPages}
-                className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+                  {
+                    Array.from({length:totalPages},(_,i)=>(
+                      <button key={i+1}
+                      onClick={()=>{
+                        setSearchParams({page:i+1})
+                      }}
+                      className={
+                        `px-3 sm:px-4 py-2 border rounded-lg 
+                        ${currentPage===i+1?"bg-gray-900 text-white"
+                        :"bg-gray-50 text-black"}`}>
+                        {i+1}
+                      </button>
+                    ))
+                  }
+                  
+                  <button
+                    // onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalProductsPage))}
+                    onClick={() => {
+                      setSearchParams({page:currentPage+1})
+                    }}
+                    disabled={currentPage === totalPages}
+                    className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+          </>
+        }
       </section>
 
       {/* Add Product Modal */}

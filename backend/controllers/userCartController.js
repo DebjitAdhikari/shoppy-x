@@ -107,3 +107,23 @@ export async function deleteCartProduct(req,res,next){
         next(err)
     }
 }
+export async function deleteAllCartProducts(req,res,next){
+    try {
+        const user = req.user
+        if(user.cart.length===0)
+            return res.status(400).json({
+                status:"failed",
+                message:"Cart is already empty"
+            })
+        
+        user.cart=[]
+        user.cartAmount=0
+        await user.save()
+        res.status(200).json({
+            status:"success",
+            data:user
+        })
+    } catch (err) {
+        next(err)
+    }
+}

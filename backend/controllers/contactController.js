@@ -37,9 +37,19 @@ export async function getContact(req,res,next) {
 
 export async function updateContact(req,res,next) {
     try {
+    //    console.log(req.body)
+       const {email,contactNo,area,city,country,postalCode}=req.body
+       const updatedContactData = {
+        email,
+        contactNo,
+        address:{
+            area,city,country,postalCode
+        }
+       }
+    //    console.log(updatedContactData)
       const data = await Contact.findOneAndUpdate(
         {},
-        {...req.body},
+        updatedContactData,
         {new:true,runValidators:true}
       )
       if(!data)

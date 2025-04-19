@@ -1,54 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link} from 'react-router-dom';
 import { Package, Truck, ArrowLeft, MapPin, Clock, TicketCheck } from 'lucide-react';
 import getOrdersByOrderIdService from '../services/orders/getOrdersByOrderIdService.js';
 import Loader from "../components/Loader.jsx"
 import ErrorPage from './ErrorPage.jsx';
+import scrollToPageTop from '../utils/scrollToPageTop.js';
 const OrderDetails = () => {
   const { orderId } = useParams();
   const [order,setOrder]=useState(null)
   const [isLoading,setIsLoading]=useState(false)
   const [doesOrderExist,setDoesOrderExist]=useState(true)
   const [userDetails,setUserDetails]=useState(null)
-  // Mock order data
-  const orderTimelineTemplate =[
-        {
-            title: 'Order Placed',
-            status:"done",
-            date: '2024-03-12 15:20',
-            description: 'Order confirmed and payment received'
-          },
-          {
-            title: 'Shipped',
-            status:"done",
-            date: '2024-03-13 10:30',
-            description: 'Package has been shipped'
-          },
-          {
-            title: 'In Transit',
-            status:"done",
-            date: '2024-03-14 18:45',
-            description: 'Package arrived at local facility'
-          },
-          {
-            title: 'Out for Delivery',
-            status:"progress",
-            date: '2024-03-15 09:15',
-            description: 'Package is out for delivery'
-          },  
-      {
-        title: 'Delivered',
-        status:"progress",
-        date: '2024-03-15 14:30',
-        description: 'Package delivered to recipient'
-      }, 
-    ];
 
-    const navigate = useNavigate()
+   
   async function fetchOrderDetails(){
     setIsLoading(true)
     const {data} = await getOrdersByOrderIdService(orderId)
-    console.log(data)
+    // console.log(data)
     if(data.status==="failed")
       setDoesOrderExist(false)
     setOrder(data.order)
@@ -57,6 +25,7 @@ const OrderDetails = () => {
   }
   useEffect(()=>{
     fetchOrderDetails()
+    scrollToPageTop()
   },[])
 
   return (

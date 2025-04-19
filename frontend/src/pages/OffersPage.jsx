@@ -57,7 +57,7 @@ const OffersPage = () => {
   async function fetchAllOffers(){
     setisLoading(true)
     const data = await getAllOffersService()
-    console.log("Offer",data)
+    // console.log("Offer",data)
     setOffers(data.data)
     setisLoading(false)
   }

@@ -36,7 +36,7 @@ function OrdersTab() {
     setSearchResult(null)
     setIsOrderSearching(true)
     const {data} = await getSearchedOrderService(searchQueryId.toUpperCase())
-    console.log(data)
+    // console.log(data)
     if(data.status==="failed"){
       setIsOrderSearching(false)
       setDoesOrderExist(false)
@@ -57,12 +57,12 @@ function OrdersTab() {
   async function handleStatusUpdate () {
     setIsUpdating(true);
     // Simulate API call
-    console.log(selectedOrder)
-    console.log(editStatus)
+    // console.log(selectedOrder)
+    // console.log(editStatus)
     const formData = new FormData()
     formData.append("orderStatus",editStatus)
     const data = await updateOrderService(selectedOrder.orderId,formData)
-    console.log(data)
+    // console.log(data)
     fetchAllOrders()
     setIsUpdating(false);
     setShowEditModal(false);
@@ -99,7 +99,7 @@ function OrdersTab() {
     setCurrentPage(Number(page))
     setIsLoading(true)
     const data = await getOrdersByPage(page)
-    console.log(data)
+    // console.log(data)
     setOrders(data.data)
     setTotalPages(data.totalPages)
     setIsLoading(false)

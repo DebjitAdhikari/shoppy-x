@@ -6,8 +6,9 @@ import updateProductService from "../../../../services/products/updateProductSer
 import successToastMessage from "../../../../utils/successToastMessage.js";
 import deleteProductService from "../../../../services/products/deleteProductService.js";
 import selectEditCategory from "../../../../utils/selectEditCategory.js";
+import SmallLoader from "../../../../components/SmallLoader.jsx";
 
-function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
+function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts,isLoading}) {
   const [featuredProducts, setFeaturedProducts] = useState([]);
 
   // State for modals and forms
@@ -107,8 +108,8 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
     if(editProductForm.discount<0 || editProductForm.actualPrice<0||editProductForm.inStock<0)
       return
     setIsUpdating(true)
-    console.log(editProductImages)
-    console.log(editProductForm)
+    // console.log(editProductImages)
+    // console.log(editProductForm)
     const formData = new FormData()
     formData.append("name", editProductForm.name);
   formData.append("availableSize", editProductForm.availableSize);
@@ -129,7 +130,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
       formData.append("imageUrls",img.preview)
   })
   const data = await updateProductService(editProductForm.id,formData)
-  console.log("updated data ", data )
+  // console.log("updated data ", data )
   data.status==="success" && successToastMessage("Product Updated Successfully")
   setIsUpdating(false)
     setShowEditProductModal(false);
@@ -143,9 +144,9 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
   
       const { id } = itemToDelete;
       setIsDeleting(true)
-      console.log("delte item id",id)
+      // console.log("delete item id",id)
       const data = await deleteProductService(id)
-      console.log(data)
+      // console.log(data)
       setIsDeleting(false)
       setShowDeleteModal(false);
       setItemToDelete(null);
@@ -163,7 +164,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
 
   useEffect(() => {
     setFeaturedProducts(allProducts)
-    console.log("from child",allCategories)
+    // console.log("from child",allCategories)
   }, [allProducts,allCategories]);
 
  
@@ -177,6 +178,8 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
           </h2>
           
         </div>
+        {
+          isLoading?<SmallLoader></SmallLoader>:
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredProducts?.map((product) => (
             <div
@@ -246,6 +249,7 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts}) {
             </div>
           ))}
         </div>
+        }
       </section>
 
       {/* Edit Product Modal */}

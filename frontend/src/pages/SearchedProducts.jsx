@@ -154,7 +154,7 @@ const SearchedProducts = () => {
 
   async function fetchProductsTitle() {
     const title = searchParams.get("query")
-    console.log("title",title)
+    // console.log("title",title)
     // setTitle(data.title);
     setTitle(title)
   }

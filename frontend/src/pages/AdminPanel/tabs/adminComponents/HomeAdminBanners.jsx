@@ -8,6 +8,7 @@ import { Bounce, toast, ToastContainer } from "react-toastify";
 import deleteBannerService from "../../../../services/homebanners/deleteBannerService.js";
 import updateBannerService from "../../../../services/homebanners/updateBannerService.js";
 import successToastMessage from "../../../../utils/successToastMessage.js";
+import SmallLoader from "../../../../components/SmallLoader.jsx";
 
 function HomeAdminBanners() {
   //creation state
@@ -17,6 +18,7 @@ function HomeAdminBanners() {
   });
   const [bannerImageFile, setBannerImageFile] = useState(null);
   //
+  const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -87,8 +89,10 @@ function HomeAdminBanners() {
   //--------fetching functions are here ---------------------
   //get All the banners
   async function fetchAllBanners() {
+    setIsLoading(true)
     const { data } = await getAllBanners();
     setAllBanners(data);
+    setIsLoading(false)
   }
   
   //--------handling onchange functions are here -----------
@@ -190,6 +194,8 @@ function HomeAdminBanners() {
             Add Banner
           </button>
         </div>
+        {
+          isLoading?<SmallLoader></SmallLoader>:
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {allBanners?.map((banner) => (
             <div
@@ -231,6 +237,7 @@ function HomeAdminBanners() {
             </div>
           ))}
         </div>
+        }
       </section>
       
       {/* Add Banner Modal */}

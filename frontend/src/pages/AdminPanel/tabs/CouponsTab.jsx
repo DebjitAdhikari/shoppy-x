@@ -4,11 +4,13 @@ import getAllCouponsService from "../../../services/coupons/getAllCouponsService
 import createCouponService from "../../../services/coupons/createCouponService";
 import successToastMessage from "../../../utils/successToastMessage";
 import deleteCouponService from "../../../services/coupons/deleteCouponService";
+import SmallLoader from "../../../components/SmallLoader";
 
 const CouponsTab = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [couponIdToDelete, setCouponIdToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -37,7 +39,7 @@ const CouponsTab = () => {
       return;
     }
 
-    console.log(data);
+    // console.log(data);
     setNewCoupon({ title: "", discountPrice: "" });
     setShowModal(false);
     setIsAdding(false);
@@ -48,7 +50,7 @@ const CouponsTab = () => {
   async function handleCouponDelete() {
     setIsDeleting(true);
     const data = await deleteCouponService(couponIdToDelete);
-    console.log(data);
+    // console.log(data);
     setCouponIdToDelete(null);
     setIsDeleting(false);
     setShowDeleteModal(false);
@@ -56,9 +58,11 @@ const CouponsTab = () => {
     successToastMessage("Coupon deleted successfully");
   }
   async function fetchAllCoupons() {
+    setIsLoading(true)
     const data = await getAllCouponsService();
-    console.log(data);
+    // console.log(data);
     setCoupons(data.data);
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -78,20 +82,17 @@ const CouponsTab = () => {
           Add
         </button>
       </div>
-
-      {coupons.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-10 text-center bg-blue-50 rounded-xl shadow-inner border border-blue-200">
-          <BadgePercent className="text-blue-500"/>
-          <h2 className="text-xl font-semibold text-blue-600">
-            No Coupons Yet
-          </h2>
-          <p className="text-gray-500 mt-1">
-            Start adding coupons to offer discounts to your customers.
-          </p>
-        </div>
-      )}
-      {/* Coupon Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {
+        isLoading?<SmallLoader></SmallLoader>:
+        coupons.length===0?<div className="flex flex-col items-center justify-center py-10 text-center bg-blue-50 rounded-xl shadow-inner border border-blue-200">
+        <BadgePercent className="text-blue-500"/>
+        <h2 className="text-xl font-semibold text-blue-600">
+          No Coupons Yet
+        </h2>
+        <p className="text-gray-500 mt-1">
+          Start adding coupons to offer discounts to your customers.
+        </p>
+      </div>:<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {coupons.map((coupon) => (
           <div
             key={coupon._id}
@@ -120,6 +121,11 @@ const CouponsTab = () => {
           </div>
         ))}
       </div>
+      }
+
+      
+      {/* Coupon Cards */}
+      
 
       {/* Add Coupon Modal */}
       {showModal && (

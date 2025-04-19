@@ -2,6 +2,8 @@ import { AlertTriangle, Edit, Plus, Trash, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import Modal from "../../common/Modal";
 
+
+//..............i havnt implemented this yet..........this is dummmy..............
 function AdminHomeCategories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);

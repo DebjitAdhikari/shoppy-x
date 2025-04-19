@@ -28,7 +28,7 @@ const Login = () => {
     formData.append("remember",rememberMe)
     try {
       const data = await login(formData)
-      console.log(data)
+      // console.log(data)
       setIsDetailsWrong(false)
       setIsLoggingIn(false)
       navigate("/profile")
@@ -47,7 +47,6 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle login logic here
-    console.log({ email, password, rememberMe });
     userLogin()
   };
 

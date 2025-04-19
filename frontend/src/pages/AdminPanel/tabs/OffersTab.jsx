@@ -6,6 +6,7 @@ import successToastMessage from "../../../utils/successToastMessage.js";
 import updateOfferService from "../../../services/offers/updateOfferService.js";
 import deleteOfferService from "../../../services/offers/deleteOfferService.js";
 import createOfferService from "../../../services/offers/createOfferService.js";
+import SmallLoader from "../../../components/SmallLoader.jsx";
 const CategoriesTab = () => {
   const [offers, setOffers] = useState([]);
   const [newOffer, setNewOffer] = useState({
@@ -25,6 +26,7 @@ const CategoriesTab = () => {
   const [imageFilePreview, setImageFilePreview] = useState(null);
   const [isError,setIsError] = useState(false)
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef(null);
   function resetAddOfferForm(){
@@ -86,8 +88,8 @@ const CategoriesTab = () => {
     e.preventDefault();
     setIsUploading(true);
     setIsError(false)
-    console.log("data",newOffer);
-    console.log(imageFile);
+    // console.log("data",newOffer);
+    // console.log(imageFile);
     const formData = new FormData();
     formData.append("title", newOffer.title);
     formData.append("value", newOffer.value);
@@ -96,7 +98,7 @@ const CategoriesTab = () => {
     formData.append("image", imageFile);
    
       const {data} = await createOfferService(formData);
-      console.log(data);
+      // console.log(data);
       if(data.status==="error"){
         setIsError(true)
         setIsUploading(false)
@@ -117,7 +119,7 @@ const CategoriesTab = () => {
       // featuredOffer:offer.featuredOffer?"yes":"no"
     })
     setEditOfferImage(offer.image.url)
-    console.log(offer)
+    // console.log(offer)
     setImageFilePreview(null);
     setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -134,7 +136,7 @@ const CategoriesTab = () => {
     e.preventDefault()
     setIsError(false)
     setIsUploading(true)
-    console.log(editOffer)
+    // console.log(editOffer)
     // console.log(imageFile)
     
     const formData = new FormData()
@@ -152,7 +154,7 @@ const CategoriesTab = () => {
       setIsUploading(false)
       return
     } 
-    console.log("updated",data)
+    // console.log("updated",data)
     setIsUploading(false)
     setShowEditModal(false)
     fetchOffers()
@@ -171,9 +173,11 @@ const CategoriesTab = () => {
   // Example categories
 
   async function fetchOffers() {
-    const { data } = await getAllOffersService();
-    console.log(data);
-    setOffers(data);
+    setIsLoading(true)
+    const data  = await getAllOffersService();
+    // console.log(data);
+    setOffers(data.data);
+    setIsLoading(false)
   }
   useEffect(() => {
     fetchOffers();
@@ -192,6 +196,8 @@ const CategoriesTab = () => {
         </button>
       </div>
     {/* offers */}
+    {
+      isLoading?<SmallLoader></SmallLoader>:
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0">
         {offers?.map((offer) => (
           <div
@@ -238,6 +244,7 @@ const CategoriesTab = () => {
         
         ))}
       </div>
+    }
         {/* add new Offer modal */}
       <Modal
         isOpen={showModal}

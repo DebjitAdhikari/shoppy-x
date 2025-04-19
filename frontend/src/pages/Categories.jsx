@@ -80,7 +80,7 @@ const Categories = () => {
   async function fetchAllCategories() {
     setIsLoading(true);
     const { data } = await getAllCategoriesService();
-    console.log(data);
+    // console.log(data);
     setIsLoading(false);
     setAllCategories(data);
     scrollToPageTop();

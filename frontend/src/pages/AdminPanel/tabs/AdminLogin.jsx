@@ -24,7 +24,7 @@ const AdminLogin = ({setIsAdminLoggedIn}) => {
       setIsDetailsWrong(false)
       setIsLoggingIn(false)
     } catch (err) {
-      console.log("login failed")
+      // console.log("login failed")
       setIsDetailsWrong(true)
       setIsLoggingIn(false)
       throw new Error(err)
