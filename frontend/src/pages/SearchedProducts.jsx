@@ -122,8 +122,6 @@ const SearchedProducts = () => {
   const itemsPerPage = isMobile ? 10 : 15;
   const totalProductsPage = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  
-
   const renderFilterCheckbox = (filter, option) => (
     <label key={option.value} className="flex items-center">
       <input
@@ -153,31 +151,31 @@ const SearchedProducts = () => {
   }
 
   async function fetchProductsTitle() {
-    const title = searchParams.get("query")
+    const title = searchParams.get("query");
     // console.log("title",title)
     // setTitle(data.title);
-    setTitle(title)
+    setTitle(title);
   }
 
   async function fetchProducts() {
-    setIsLoading(true)
+    setIsLoading(true);
     const pageParam = searchParams.get("page");
     const queryParam = searchParams.get("query");
-    setSearchQuery(queryParam)
-    setTheCurrentPage(parseInt(pageParam))
-    const data = await getProductsByQueryService(queryParam,pageParam)
+    setSearchQuery(queryParam);
+    setTheCurrentPage(parseInt(pageParam));
+    const data = await getProductsByQueryService(queryParam, pageParam);
     // console.log("found",data)
-    if(data.status==="failed"){
-      console.log("no results found")
-      setTotalResults(0)
-      setTotalPages(0)
-      setIsLoading(false)
-      return
+    if (data.status === "failed") {
+      console.log("no results found");
+      setTotalResults(0);
+      setTotalPages(0);
+      setIsLoading(false);
+      return;
     }
-    setTotalPages(data.totalPages)
-    setTotalResults(data.totalResults)
-    setProducts(data.data)
-    setIsLoading(false)
+    setTotalPages(data.totalPages);
+    setTotalResults(data.totalResults);
+    setProducts(data.data);
+    setIsLoading(false);
     scrollToPageTop();
   }
   // useEffect(() => {
@@ -187,207 +185,222 @@ const SearchedProducts = () => {
   useEffect(() => {
     //redirect user to have query page params
     restrictParams();
-    fetchProductsTitle()
+    fetchProductsTitle();
     fetchProducts();
   }, [searchParams]);
- 
+
   return (
     <>
-    <Helmet>
-  {/* Dynamic Title with Query */}
-  <title>{`Search Results for "${searchQuery}" | ShoppyX`}</title>
+      <Helmet>
+        {/* Dynamic Title with Query */}
+        <title>{`Search Results for "${searchQuery}" | ShoppyX`}</title>
 
-  {/* Description */}
-  <meta
-    name="description"
-    content={`Find results for "${searchQuery}" at ShoppyX. Browse a wide range of products across fashion, electronics, home essentials, and more.`}
-  />
+        {/* Description */}
+        <meta
+          name="description"
+          content={`Find results for "${searchQuery}" at ShoppyX. Browse a wide range of products across fashion, electronics, home essentials, and more.`}
+        />
 
-  {/* Keywords */}
-  <meta
-    name="keywords"
-    content={`${searchQuery}, buy ${searchQuery}, ${searchQuery} deals, ShoppyX search, online shopping`}
-  />
+        {/* Keywords */}
+        <meta
+          name="keywords"
+          content={`${searchQuery}, buy ${searchQuery}, ${searchQuery} deals, ShoppyX search, online shopping`}
+        />
 
-  {/* Open Graph */}
-  <meta property="og:title" content={`Search: ${searchQuery} | ShoppyX`} />
-  <meta
-    property="og:description"
-    content={`Shop the best matches for "${searchQuery}" on ShoppyX. Discover trending items and great deals now.`}
-  />
-  <meta property="og:type" content="website" />
-  <meta
-    property="og:url"
-    content={`https://shoppy-x.vercel.app/search?query=${encodeURIComponent(searchQuery)}`}
-  />
-  <meta
-    property="og:image"
-    content="https://shoppy-x.vercel.app/og-default.jpg"
-  />
+        {/* Open Graph */}
+        <meta
+          property="og:title"
+          content={`Search: ${searchQuery} | ShoppyX`}
+        />
+        <meta
+          property="og:description"
+          content={`Shop the best matches for "${searchQuery}" on ShoppyX. Discover trending items and great deals now.`}
+        />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:url"
+          content={`https://shoppy-x.vercel.app/search?query=${encodeURIComponent(
+            searchQuery
+          )}`}
+        />
+        <meta
+          property="og:image"
+          content="https://shoppy-x.vercel.app/og-default.jpg"
+        />
 
-  {/* Canonical */}
-  <link
-    rel="canonical"
-    href={`https://shoppy-x.vercel.app/search?query=${encodeURIComponent(searchQuery)}`}
-  />
-</Helmet>
+        {/* Canonical */}
+        <link
+          rel="canonical"
+          href={`https://shoppy-x.vercel.app/search?query=${encodeURIComponent(
+            searchQuery
+          )}`}
+        />
+      </Helmet>
 
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-      {/* Header Section */}
-      <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {title}
-          </h1>
-          <p className="text-gray-600 mt-1 sm:mt-2">
-            {totalResults} results found
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+        {/* Header Section */}
+        <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {title}
+            </h1>
+            <p className="text-gray-600 mt-1 sm:mt-2">
+              {totalResults} results found
+            </p>
+          </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="relative flex-1 sm:flex-none">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full sm:w-auto appearance-none bg-white border border-gray-300 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="relative flex-1 sm:flex-none">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full sm:w-auto appearance-none bg-white border border-gray-300 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center justify-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 flex-1 sm:flex-none"
             >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-          </div>
-
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center justify-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 flex-1 sm:flex-none"
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-            <span>Filters</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Filters Modal */}
-      {isMobile && showFilters && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50">
-          <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-xl">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold">Filters</h3>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto h-full pb-32">
-              {filters.map((filter) => (
-                <div key={filter.name} className="mb-6">
-                  <h3 className="font-semibold mb-3">{filter.name}</h3>
-                  <div className="space-y-2">
-                    {filter.options.map((option) =>
-                      renderFilterCheckbox(filter, option)
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t">
-              <button
-                onClick={() => setShowFilters(false)}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-              >
-                Apply Filters
-              </button>
-            </div>
+              <SlidersHorizontal className="h-5 w-5" />
+              <span>Filters</span>
+            </button>
           </div>
         </div>
-      )}
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Desktop Filters Sidebar */}
-        {!isMobile && showFilters && (
-          <div className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-20">
-              {filters.map((filter) => (
-                <div key={filter.name} className="mb-6 last:mb-0">
-                  <h3 className="font-semibold mb-3">{filter.name}</h3>
-                  <div className="space-y-2">
-                    {filter.options.map((option) =>
-                      renderFilterCheckbox(filter, option)
-                    )}
+        {/* Mobile Filters Modal */}
+        {isMobile && showFilters && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50">
+            <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-xl">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="text-lg font-semibold">Filters</h3>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4 overflow-y-auto h-full pb-32">
+                {filters.map((filter) => (
+                  <div key={filter.name} className="mb-6">
+                    <h3 className="font-semibold mb-3">{filter.name}</h3>
+                    <div className="space-y-2">
+                      {filter.options.map((option) =>
+                        renderFilterCheckbox(filter, option)
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t">
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Apply Filters
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Products Grid */}
-        <div className="flex-1">
-          {isLoading ? (
-            <div className=" h-[60vh]">
-              <Loader></Loader>
-            </div>
-          ) : totalResults === 0 ? (
-            <NoProductsFound></NoProductsFound>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {products?.map((product) => (
-                <Product key={product._id} product={product} />
-              ))}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Desktop Filters Sidebar */}
+          {!isMobile && showFilters && (
+            <div className="w-full lg:w-64 flex-shrink-0">
+              <div className="bg-white rounded-lg shadow p-6 sticky top-20">
+                {filters.map((filter) => (
+                  <div key={filter.name} className="mb-6 last:mb-0">
+                    <h3 className="font-semibold mb-3">{filter.name}</h3>
+                    <div className="space-y-2">
+                      {filter.options.map((option) =>
+                        renderFilterCheckbox(filter, option)
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Pagination */}
-          {totalPages > 0 && (
-            <div className="mt-8 sm:mt-12 flex justify-center">
-              <div className="flex flex-wrap justify-center gap-2">
-                <button
-                  onClick={() => {
-                    setSearchParams({ query: searchParams.get("query"),page: theCurrentPage - 1 });
-                  }}
-                  disabled={theCurrentPage === 1}
-                  className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => (
+          {/* Products Grid */}
+          <div className="flex-1">
+            {isLoading ? (
+              <div className=" h-[60vh]">
+                <Loader></Loader>
+              </div>
+            ) : totalResults === 0 ? (
+              <NoProductsFound></NoProductsFound>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
+                {products?.map((product) => (
+                  <Product key={product._id} product={product} />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 0 && (
+              <div className="mt-8 sm:mt-12 flex justify-center">
+                <div className="flex flex-wrap justify-center gap-2">
                   <button
-                    key={i + 1}
                     onClick={() => {
-                      
-                      setSearchParams({ query: searchParams.get("query"), page: i + 1 });
+                      setSearchParams({
+                        query: searchParams.get("query"),
+                        page: theCurrentPage - 1,
+                      });
                     }}
-                    className={`px-3 sm:px-4 py-2 border rounded-lg 
+                    disabled={theCurrentPage === 1}
+                    className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => {
+                        setSearchParams({
+                          query: searchParams.get("query"),
+                          page: i + 1,
+                        });
+                      }}
+                      className={`px-3 sm:px-4 py-2 border rounded-lg 
                     ${
                       theCurrentPage === i + 1
                         ? "bg-gray-900 text-white"
                         : "bg-gray-50 text-black"
                     }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
 
-                <button
-                  onClick={() => {
-                    setSearchParams({ query: searchParams.get("query"),page: theCurrentPage + 1 });
-                  }}
-                  disabled={theCurrentPage === totalPages}
-                  className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+                  <button
+                    onClick={() => {
+                      setSearchParams({
+                        query: searchParams.get("query"),
+                        page: theCurrentPage + 1,
+                      });
+                    }}
+                    disabled={theCurrentPage === totalPages}
+                    className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

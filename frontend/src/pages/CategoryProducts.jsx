@@ -15,11 +15,11 @@ import getCategoryByValueService from "../services/categories/getCategoryByValue
 import { Helmet } from "react-helmet-async";
 
 const sortOptions = [
-  { name: "Most Popular", value: "popular" },
+  // { name: "Most Popular", value: "popular" },
   { name: "Newest", value: "newest" },
   { name: "Price: Low to High", value: "price_asc" },
   { name: "Price: High to Low", value: "price_desc" },
-  { name: "Rating", value: "rating" },
+  // { name: "Rating", value: "rating" },
 ];
 
 const filters = [
@@ -29,7 +29,7 @@ const filters = [
       { value: "0-50", label: "Under ₹50" },
       { value: "50-100", label: "₹50 to ₹100" },
       { value: "100-200", label: "₹100 to ₹200" },
-      { value: "200+", label: "Over ₹200" },
+      { value: "200", label: "Over ₹200" },
     ],
   },
   {
@@ -82,37 +82,12 @@ const CategoryProducts = () => {
       ...prev,
       [filterName]: prev[filterName] === optionValue ? null : optionValue,
     }));
+    const queryRange=optionValue.split("-")
+    
+
+    console.log(filterName)
+    console.log(optionValue.split("-"))
     setCurrentPage(1);
-  };
-
-  const filterProducts = (products) => {
-    return products.filter((product) => {
-      // Price Range Filter
-      if (selectedFilters["Price Range"]) {
-        const [min, max] = selectedFilters["Price Range"]
-          .split("-")
-          .map(Number);
-        if (max) {
-          if (product.price < min || product.price > max) return false;
-        } else {
-          if (product.price < min) return false;
-        }
-      }
-
-      // Rating Filter
-      if (selectedFilters["Rating"]) {
-        const minRating = parseInt(selectedFilters["Rating"]);
-        if (parseFloat(product.rating) < minRating) return false;
-      }
-
-      // Discount Filter
-      if (selectedFilters["Discount"]) {
-        const minDiscount = parseInt(selectedFilters["Discount"]);
-        if (product.discount < minDiscount) return false;
-      }
-
-      return true;
-    });
   };
 
   
@@ -299,11 +274,11 @@ const CategoryProducts = () => {
           ) : totalResults === 0 ? (
             <NoProductsFound></NoProductsFound>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {products?.map((product) => (
-                <Product key={product._id} product={product} />
-              ))}
-            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
+  {products?.map((product) => (
+    <Product key={product._id} product={product} />
+  ))}
+</div>
           )}
 
           {/* Pagination */}

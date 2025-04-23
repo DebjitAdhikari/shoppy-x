@@ -23,7 +23,7 @@ function FeaturedProduts() {
         <h2 className="sm:text-3xl text-xl font-bold text-gray-900 mb-8">Featured Products</h2>
         {
           isProductLoading?<Loader></Loader>:
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {
           
           products.map((product) => (
