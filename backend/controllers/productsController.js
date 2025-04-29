@@ -39,11 +39,31 @@ export async function getProductsByCategory(req,res,next){
        
       const {category}=req.params
       const page = parseInt(req.query.page) || 1
+      // console.log(req.query)
+      const filterQuery = {category}
+      //price filtering  
+      if(req.query.price){
+        if(req.query.price.gte)
+          filterQuery.finalPrice={...filterQuery.finalPrice,$gte:Number(req.query.price.gte)}
+        if(req.query.price.lte)
+          filterQuery.finalPrice={...filterQuery.finalPrice,$lte:Number(req.query.price.lte)}
+      }
+      //discount filtering  
+      if(req.query.discount){
+        if(req.query.discount.gte)
+          filterQuery.discount={...filterQuery.discount,$gte:Number(req.query.discount.gte)}
+      }
+      //rating filtering  
+      if(req.query.rating){
+        if(req.query.rating.gte)
+          filterQuery.rating={...filterQuery.rating,$gte:Number(req.query.rating.gte)}
+        }
+        console.log("filterobject",filterQuery)
       // console.log('query',page)
        //per page how many products
       const skipAmount = (page-1)*maxProductsPerPage
-      const products = await Product.find({category}).skip(skipAmount).limit(maxProductsPerPage)
-      const totalResults = await Product.countDocuments({category})
+      const products = await Product.find(filterQuery).skip(skipAmount).limit(maxProductsPerPage)
+      const totalResults = await Product.countDocuments(filterQuery)
   
       res.status(200).json({
         status:"success",
@@ -140,7 +160,27 @@ export async function getProductsByQuery(req,res,next){
         model:"sentence-transformers/all-MiniLM-L6-v2",
         inputs:query
       })
-      const maxProductsPerPage=12
+      // console.log(req.query)
+      const filterQuery = {}
+      //price filtering  
+      if(req.query.price){
+        if(req.query.price.gte)
+          filterQuery.finalPrice={...filterQuery.finalPrice,$gte:Number(req.query.price.gte)}
+        if(req.query.price.lte)
+          filterQuery.finalPrice={...filterQuery.finalPrice,$lte:Number(req.query.price.lte)}
+      }
+      //discount filtering  
+      if(req.query.discount){
+        if(req.query.discount.gte)
+          filterQuery.discount={...filterQuery.discount,$gte:Number(req.query.discount.gte)}
+      }
+      //rating filtering  
+      if(req.query.rating){
+        if(req.query.rating.gte)
+          filterQuery.rating={...filterQuery.rating,$gte:Number(req.query.rating.gte)}
+        }
+        console.log("filterobject",filterQuery)
+
       const skipAmount = (parseInt(page)-1)*maxProductsPerPage
       const results = await Product.aggregate([
         {
@@ -154,11 +194,16 @@ export async function getProductsByQuery(req,res,next){
         },
         {
           $match: {
-            $or: [
-              { category: new RegExp(query, "i") }, // Match by category
-              { name: new RegExp(query, "i") }, // Match by product name
-              { description: new RegExp(query,"i")}//match by description
-            ],
+            $and: [
+              {
+                $or: [
+                  { category: new RegExp(query, "i") },
+                  { name: new RegExp(query, "i") },
+                  { description: new RegExp(query, "i") }
+                ]
+              },
+              filterQuery
+            ]
           },
         },
         {

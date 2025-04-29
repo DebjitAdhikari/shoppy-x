@@ -24,7 +24,7 @@ const sortOptions = [
 
 const filters = [
   {
-    name: "Price Range",
+    name: "price",
     options: [
       { value: "0-50", label: "Under ₹50" },
       { value: "50-100", label: "₹50 to ₹100" },
@@ -33,19 +33,19 @@ const filters = [
     ],
   },
   {
-    name: "Rating",
+    name: "rating",
     options: [
-      { value: "4+", label: "4 Stars & Up" },
-      { value: "3+", label: "3 Stars & Up" },
-      { value: "2+", label: "2 Stars & Up" },
+      { value: "4", label: "4 Stars & Up" },
+      { value: "3", label: "3 Stars & Up" },
+      { value: "2", label: "2 Stars & Up" },
     ],
   },
   {
-    name: "Discount",
+    name: "discount",
     options: [
-      { value: "10+", label: "10% Off or More" },
-      { value: "20+", label: "20% Off or More" },
-      { value: "30+", label: "30% Off or More" },
+      { value: "10", label: "10% Off or More" },
+      { value: "20", label: "20% Off or More" },
+      { value: "30", label: "30% Off or More" },
     ],
   },
 ];
@@ -61,9 +61,9 @@ const CategoryProducts = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
-    "Price Range": null,
-    Rating: null,
-    Discount: null,
+    price: null,
+    rating: null,
+    discount: null,
   });
   const [isMobile, setIsMobile] = useState(false);
 
@@ -82,12 +82,33 @@ const CategoryProducts = () => {
       ...prev,
       [filterName]: prev[filterName] === optionValue ? null : optionValue,
     }));
-    const queryRange=optionValue.split("-")
     
-
-    console.log(filterName)
-    console.log(optionValue.split("-"))
-    setCurrentPage(1);
+    const queryRange=optionValue.split("-")
+    let currentParams
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      const isSelected = selectedFilters[filterName]===optionValue
+      if(isSelected){
+        newParams.delete(`${filterName}[gte]`)
+        newParams.delete(`${filterName}[lte]`)
+        newParams.delete(`${filterName}`)
+        currentParams=newParams
+        return newParams
+      }
+      newParams.set(`${filterName}[gte]`, queryRange[0]);
+      if(filterName==="price"&& queryRange.length===2)
+        newParams.set(`${filterName}[lte]`, queryRange[1]);
+      else if(filterName==="price")
+        newParams.delete(`${filterName}[lte]`)
+      newParams.set("page", getCurrentPage()); // reset page on filter change
+      currentParams=newParams
+      return newParams;
+    });
+    // console.log("the current params",currentParams.toString())
+    // console.log("the current filter name",filterName)
+    // console.log("the current range",queryRange)
+    // console.log("the selected filter",selectedFilters)
+    // fetchProducts(currentParams.toString())
   };
 
   
@@ -123,12 +144,15 @@ const CategoryProducts = () => {
     // console.log("title",data)
     setTitle(data.title);
   }
-
-  async function fetchProducts() {
-    const pageParam = searchParams.get("page");
+  function getCurrentPage(){
+    return searchParams.get("page")
+  }
+  async function fetchProducts(urlParams) {
+    const pageParam = getCurrentPage();
     setIsLoading(true);
-    const data = await getProductsByCategoryService(category, pageParam);
+    const data = await getProductsByCategoryService(category, urlParams);
     setTheCurrentPage(parseInt(pageParam));
+    // console.log(data)
     setProducts(data.data);
     setTotalResults(data.totalResults);
     setTotalPages(data.totalPages);
@@ -136,13 +160,19 @@ const CategoryProducts = () => {
     setIsLoading(false);
     scrollToPageTop();
   }
+  
   useEffect(() => {
     fetchCategoryTitle();
   }, []);
   useEffect(() => {
     //redirect user to have query page params
     restrictParams();
-    fetchProducts();
+    let currentParams
+    setSearchParams((prev)=>{
+      currentParams = new URLSearchParams(prev)
+      return currentParams
+    })
+    fetchProducts(currentParams);
   }, [searchParams]);
   return (
     <>

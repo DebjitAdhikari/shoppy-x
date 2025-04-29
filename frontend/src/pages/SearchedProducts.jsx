@@ -16,37 +16,37 @@ import getProductsByQueryService from "../services/products/getProductsByQuerySe
 import { Helmet } from "react-helmet-async";
 
 const sortOptions = [
-  { name: "Most Popular", value: "popular" },
+  // { name: "Most Popular", value: "popular" },
   { name: "Newest", value: "newest" },
   { name: "Price: Low to High", value: "price_asc" },
   { name: "Price: High to Low", value: "price_desc" },
-  { name: "Rating", value: "rating" },
+  // { name: "Rating", value: "rating" },
 ];
 
 const filters = [
   {
-    name: "Price Range",
+    name: "price",
     options: [
       { value: "0-50", label: "Under ₹50" },
       { value: "50-100", label: "₹50 to ₹100" },
       { value: "100-200", label: "₹100 to ₹200" },
-      { value: "200+", label: "Over ₹200" },
+      { value: "200", label: "Over ₹200" },
     ],
   },
   {
-    name: "Rating",
+    name: "rating",
     options: [
-      { value: "4+", label: "4 Stars & Up" },
-      { value: "3+", label: "3 Stars & Up" },
-      { value: "2+", label: "2 Stars & Up" },
+      { value: "4", label: "4 Stars & Up" },
+      { value: "3", label: "3 Stars & Up" },
+      { value: "2", label: "2 Stars & Up" },
     ],
   },
   {
-    name: "Discount",
+    name: "discount",
     options: [
-      { value: "10+", label: "10% Off or More" },
-      { value: "20+", label: "20% Off or More" },
-      { value: "30+", label: "30% Off or More" },
+      { value: "10", label: "10% Off or More" },
+      { value: "20", label: "20% Off or More" },
+      { value: "30", label: "30% Off or More" },
     ],
   },
 ];
@@ -85,7 +85,33 @@ const SearchedProducts = () => {
       ...prev,
       [filterName]: prev[filterName] === optionValue ? null : optionValue,
     }));
-    setCurrentPage(1);
+    
+    const queryRange=optionValue.split("-")
+    let currentParams
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      const isSelected = selectedFilters[filterName]===optionValue
+      if(isSelected){
+        newParams.delete(`${filterName}[gte]`)
+        newParams.delete(`${filterName}[lte]`)
+        newParams.delete(`${filterName}`)
+        currentParams=newParams
+        return newParams
+      }
+      newParams.set(`${filterName}[gte]`, queryRange[0]);
+      if(filterName==="price"&& queryRange.length===2)
+        newParams.set(`${filterName}[lte]`, queryRange[1]);
+      else if(filterName==="price")
+        newParams.delete(`${filterName}[lte]`)
+      newParams.set("page", getCurrentPage()); // reset page on filter change
+      currentParams=newParams
+      return newParams;
+    });
+    // console.log("the current params",currentParams.toString())
+    // console.log("the current filter name",filterName)
+    // console.log("the current range",queryRange)
+    // console.log("the selected filter",selectedFilters)
+    // fetchProducts(currentParams.toString())
   };
 
   const filterProducts = (products) => {
@@ -149,7 +175,9 @@ const SearchedProducts = () => {
       return;
     }
   }
-
+  function getCurrentPage(){
+    return searchParams.get("page")
+  }
   async function fetchProductsTitle() {
     const title = searchParams.get("query");
     // console.log("title",title)
@@ -157,13 +185,13 @@ const SearchedProducts = () => {
     setTitle(title);
   }
 
-  async function fetchProducts() {
+  async function fetchProducts(urlParams) {
     setIsLoading(true);
     const pageParam = searchParams.get("page");
     const queryParam = searchParams.get("query");
     setSearchQuery(queryParam);
     setTheCurrentPage(parseInt(pageParam));
-    const data = await getProductsByQueryService(queryParam, pageParam);
+    const data = await getProductsByQueryService(urlParams);
     // console.log("found",data)
     if (data.status === "failed") {
       console.log("no results found");
@@ -186,7 +214,12 @@ const SearchedProducts = () => {
     //redirect user to have query page params
     restrictParams();
     fetchProductsTitle();
-    fetchProducts();
+    let currentParams
+    setSearchParams((prev)=>{
+      currentParams=new URLSearchParams(prev)
+      return currentParams
+    })
+    fetchProducts(currentParams);
   }, [searchParams]);
 
   return (
