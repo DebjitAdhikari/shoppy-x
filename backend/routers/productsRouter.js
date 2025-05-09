@@ -16,7 +16,7 @@ router.route("/deleteAll")
 
 router.route("/searchSuggestions")
     .get(productsController.getSearchSuggestions)
-router.route("/queryProducts")
+router.route("/queryProducts/:searchedQuery")
     .get(productsController.getProductsByQuery)
 router.route("/getByCategory/:category")
     .get(productsController.getProductsByCategory)

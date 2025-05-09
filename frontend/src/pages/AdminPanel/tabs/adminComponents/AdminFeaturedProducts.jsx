@@ -180,69 +180,78 @@ function AdminFeaturedProducts({allCategories,allProducts,fetchAllProducts,isLoa
         </div>
         {
           isLoading?<SmallLoader></SmallLoader>:
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
           {featuredProducts?.map((product) => (
             <div
               key={product._id}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 group"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-100 group relative"
             >
-              <div className="relative">
-                <div className="h-56 bg-gray-100 overflow-hidden">
-                  <img
-                    src={product.images[0].url}
-                    alt={product.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                  />
+              {/* Image Container */}
+              <div className="relative aspect-square bg-gray-100">
+                <img
+                  src={product.images[0].url}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                
+                {/* Badges */}
+                <div className="absolute top-2 right-2 space-y-1">
+                  {product.discount > 0 && (
+                    <div className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 py-1 rounded-full">
+                      -{product.discount}%
+                    </div>
+                  )}
+                  {product.inStock > 0 && (
+                    <div className="bg-yellow-500 text-white text-xs sm:text-sm font-bold px-2 py-1 rounded">
+                      {product.inStock} Left
+                    </div>
+                  )}
                 </div>
-                {product.discount > 0 && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    -{product.discount}%
-                  </div>
-                )}
-                { product.inStock > 0 && (
-                  <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    Only {product.inStock} Left!
-                  </div>
-                )}
               </div>
-              <div className="p-5">
-                <h3 className="text-lg font-semibold text-gray-800 truncate">
+        
+              {/* Product Details */}
+              <div className="p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate mb-1 sm:mb-2">
                   {product.name}
                 </h3>
-                <div className="flex items-center gap-2 mt-3">
-                  <span className="text-lg font-bold text-indigo-600">
-                  ₹{(product.finalPrice)}
+                
+                {/* Price Section */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm sm:text-base font-bold text-indigo-600">
+                    ₹{product.finalPrice}
                   </span>
                   {product.discount > 0 && (
-                    <span className="text-sm text-gray-500 line-through">
+                    <span className="text-xs sm:text-sm text-gray-500 line-through">
                       ₹{product.actualPrice}
                     </span>
                   )}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-1">
+        
+                {/* Size Tags */}
+                <div className="mt-2 sm:mt-3 flex flex-wrap gap-1.5">
                   {product.availableSize?.split(",")?.map((size, index) => (
                     <span
                       key={index}
                       className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
                     >
-                      {size}
+                      {size.trim()}
                     </span>
                   ))}
                 </div>
-                <div className="flex gap-3 mt-4 justify-end">
+        
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-3 sm:mt-4 justify-end">
                   <button
                     onClick={() => openEditProductModal(product)}
-                    className="p-2 hover:bg-indigo-100 rounded-full transition-colors duration-200 text-indigo-600"
-                    aria-label="Edit product"
+                    className="p-1.5 sm:p-2 hover:bg-indigo-100 rounded-full transition-colors duration-200 text-indigo-600"
                   >
-                    <Edit className="w-5 h-5" />
+                    <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button
                     onClick={() => openDeleteModal("product", product._id)}
-                    className="p-2 hover:bg-red-100 rounded-full transition-colors duration-200 text-red-600"
-                    aria-label="Delete product"
+                    className="p-1.5 sm:p-2 hover:bg-red-100 rounded-full transition-colors duration-200 text-red-600"
                   >
-                    <Trash className="w-5 h-5" />
+                    <Trash className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
               </div>

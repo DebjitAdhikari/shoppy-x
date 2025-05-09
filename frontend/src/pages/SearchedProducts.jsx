@@ -64,10 +64,10 @@ const SearchedProducts = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
-    "Price Range": null,
-    Rating: null,
-    Discount: null,
-  });
+      price: null,
+      rating: null,
+      discount: null,
+    });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -79,6 +79,36 @@ const SearchedProducts = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // const filterProducts = (products) => {
+  //   return products.filter((product) => {
+  //     // Price Range Filter
+  //     if (selectedFilters["Price Range"]) {
+  //       const [min, max] = selectedFilters["Price Range"]
+  //         .split("-")
+  //         .map(Number);
+  //       if (max) {
+  //         if (product.price < min || product.price > max) return false;
+  //       } else {
+  //         if (product.price < min) return false;
+  //       }
+  //     }
+
+  //     // Rating Filter
+  //     if (selectedFilters["Rating"]) {
+  //       const minRating = parseInt(selectedFilters["Rating"]);
+  //       if (parseFloat(product.rating) < minRating) return false;
+  //     }
+
+  //     // Discount Filter
+  //     if (selectedFilters["Discount"]) {
+  //       const minDiscount = parseInt(selectedFilters["Discount"]);
+  //       if (product.discount < minDiscount) return false;
+  //     }
+
+  //     return true;
+  //   });
+  // };
 
   const handleFilterChange = (filterName, optionValue) => {
     setSelectedFilters((prev) => ({
@@ -114,39 +144,9 @@ const SearchedProducts = () => {
     // fetchProducts(currentParams.toString())
   };
 
-  const filterProducts = (products) => {
-    return products.filter((product) => {
-      // Price Range Filter
-      if (selectedFilters["Price Range"]) {
-        const [min, max] = selectedFilters["Price Range"]
-          .split("-")
-          .map(Number);
-        if (max) {
-          if (product.price < min || product.price > max) return false;
-        } else {
-          if (product.price < min) return false;
-        }
-      }
-
-      // Rating Filter
-      if (selectedFilters["Rating"]) {
-        const minRating = parseInt(selectedFilters["Rating"]);
-        if (parseFloat(product.rating) < minRating) return false;
-      }
-
-      // Discount Filter
-      if (selectedFilters["Discount"]) {
-        const minDiscount = parseInt(selectedFilters["Discount"]);
-        if (product.discount < minDiscount) return false;
-      }
-
-      return true;
-    });
-  };
-
-  const filteredProducts = filterProducts(products);
-  const itemsPerPage = isMobile ? 10 : 15;
-  const totalProductsPage = Math.ceil(filteredProducts.length / itemsPerPage);
+  // const filteredProducts = filterProducts(products);
+  // const itemsPerPage = isMobile ? 10 : 15;
+  // const totalProductsPage = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const renderFilterCheckbox = (filter, option) => (
     <label key={option.value} className="flex items-center">
@@ -180,6 +180,7 @@ const SearchedProducts = () => {
   }
   async function fetchProductsTitle() {
     const title = searchParams.get("query");
+    console.log(title)
     // console.log("title",title)
     // setTitle(data.title);
     setTitle(title);
@@ -191,7 +192,7 @@ const SearchedProducts = () => {
     const queryParam = searchParams.get("query");
     setSearchQuery(queryParam);
     setTheCurrentPage(parseInt(pageParam));
-    const data = await getProductsByQueryService(urlParams);
+    const data = await getProductsByQueryService(queryParam,urlParams);
     // console.log("found",data)
     if (data.status === "failed") {
       console.log("no results found");

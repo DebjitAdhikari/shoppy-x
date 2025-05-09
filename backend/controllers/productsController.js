@@ -149,165 +149,214 @@ export async function getProduct(req,res,next){
     }
 }
 export async function getProductsByQuery(req,res,next){
-    try {
-      const {query,page=1} = req.query
-      if(!query || !page)
-        return res.status(400).json({
-          status:"failed",
-          message:"query parameter or page required"
-        })
-      const queryEmbedding=await huggingFaceApi.featureExtraction({
-        model:"sentence-transformers/all-MiniLM-L6-v2",
-        inputs:query
+  try {
+    const {page=1} = req.query
+    const {searchedQuery}=req.params
+    console.log(searchedQuery)
+    console.log(req.query)
+    
+    if(!searchedQuery || !page)
+      return res.status(400).json({
+        status:"failed",
+        message:"query parameter or page required"
       })
-      // console.log(req.query)
-      const filterQuery = {}
-      //price filtering  
-      if(req.query.price){
-        if(req.query.price.gte)
-          filterQuery.finalPrice={...filterQuery.finalPrice,$gte:Number(req.query.price.gte)}
-        if(req.query.price.lte)
-          filterQuery.finalPrice={...filterQuery.finalPrice,$lte:Number(req.query.price.lte)}
-      }
-      //discount filtering  
-      if(req.query.discount){
-        if(req.query.discount.gte)
-          filterQuery.discount={...filterQuery.discount,$gte:Number(req.query.discount.gte)}
-      }
-      //rating filtering  
-      if(req.query.rating){
-        if(req.query.rating.gte)
-          filterQuery.rating={...filterQuery.rating,$gte:Number(req.query.rating.gte)}
-        }
-        console.log("filterobject",filterQuery)
+    
+    // Add error handling for HuggingFace API
+    let queryEmbedding;
+    try {
+      queryEmbedding = await huggingFaceApi.featureExtraction({
+        model:"sentence-transformers/all-MiniLM-L6-v2",
+        inputs:searchedQuery
+      });
+    } catch (error) {
+      console.error("HuggingFace API error:", error.message);
+      // Continue with text-based search only - don't let the vector search fail the whole request
+      queryEmbedding = null;
+    }
+    
+    const filterQuery = {}
+    //price filtering  
+    if(req.query.price){
+      if(req.query.price.gte)
+        filterQuery.finalPrice={...filterQuery.finalPrice,$gte:Number(req.query.price.gte)}
+      if(req.query.price.lte)
+        filterQuery.finalPrice={...filterQuery.finalPrice,$lte:Number(req.query.price.lte)}
+    }
+    //discount filtering  
+    if(req.query.discount){
+      if(req.query.discount.gte)
+        filterQuery.discount={...filterQuery.discount,$gte:Number(req.query.discount.gte)}
+    }
+    //rating filtering  
+    if(req.query.rating){
+      if(req.query.rating.gte)
+        filterQuery.rating={...filterQuery.rating,$gte:Number(req.query.rating.gte)}
+    }
+    console.log("filterobject", filterQuery)
 
-      const skipAmount = (parseInt(page)-1)*maxProductsPerPage
-      const results = await Product.aggregate([
-        {
-          $vectorSearch:{
-            index:"vector_index",
-            path:"vector",
-            queryVector:queryEmbedding,
-            numCandidates:20,
-            limit:20,
-          },
+    const skipAmount = (parseInt(page)-1)*maxProductsPerPage
+    
+    // Modify the search pipeline based on whether we have vector embeddings
+    const searchPipeline = [];
+    
+    // Only add vector search if we have embeddings
+    if (queryEmbedding) {
+      searchPipeline.push({
+        $vectorSearch:{
+          index:"vector_index",
+          path:"vector",
+          queryVector:queryEmbedding,
+          numCandidates:20,
+          limit:20,
         },
-        {
-          $match: {
-            $and: [
-              {
-                $or: [
-                  { category: new RegExp(query, "i") },
-                  { name: new RegExp(query, "i") },
-                  { description: new RegExp(query, "i") }
-                ]
-              },
-              filterQuery
+      });
+    }
+    
+    // Always include text-based searching
+    searchPipeline.push({
+      $match: {
+        $and: [
+          {
+            $or: [
+              { category: new RegExp(searchedQuery, "i") },
+              { name: new RegExp(searchedQuery, "i") },
+              { description: new RegExp(searchedQuery, "i") }
             ]
           },
-        },
-        {
-          $facet:{
-            metadata:[{ $count:"total" }],
-            data:[
-              { $skip:skipAmount },
-              { $limit:maxProductsPerPage },
-              { $project:{ vector:0 }}, //exclude vector field
-            ]
-          }
-        }
-      ])
-      if(!results)
-        return res.status(404).json({
-          status:"failed",
-          message:"No results found"
-        })
-        const totalResults = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0;
-        if(totalResults===0)
-        return res.status(400).json({
-          status: "failed",
+          filterQuery
+        ]
+      },
+    });
+    
+    searchPipeline.push({
+      $facet:{
+        metadata:[{ $count:"total" }],
+        data:[
+          { $skip:skipAmount },
+          { $limit:maxProductsPerPage },
+          { $project:{ vector:0 }}, //exclude vector field
+        ]
+      }
+    });
+    
+    const results = await Product.aggregate(searchPipeline);
+    
+    if(!results)
+      return res.status(404).json({
+        status:"failed",
+        message:"No results found"
+      })
+      
+    const totalResults = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0;
+    if(totalResults===0)
+      return res.status(400).json({
+        status: "failed",
         message: "No results found",
       })
 
-      res.status(200).json({
-        status:"success",
-        totalResults,
-        totalPages: Math.ceil(totalResults/maxProductsPerPage),
-        data:results[0].data
-      })
-    } catch (err) {
-      next(err)
-    }
+    res.status(200).json({
+      status:"success",
+      totalResults,
+      totalPages: Math.ceil(totalResults/maxProductsPerPage),
+      data:results[0].data
+    })
+  } catch (err) {
+    console.error("Search error:", err);
+    next(err)
+  }
 }
 export async function getSearchSuggestions(req,res,next){
+  try {
+    const {query,page=1} = req.query
+    if(!query || !page)
+      return res.status(400).json({
+        status:"failed",
+        message:"query parameter or page required"
+      })
+      
+    // Add error handling for HuggingFace API
+    let queryEmbedding;
     try {
-      const {query,page=1} = req.query
-      if(!query || !page)
-        return res.status(400).json({
-          status:"failed",
-          message:"query parameter or page required"
-        })
-      const queryEmbedding=await huggingFaceApi.featureExtraction({
+      queryEmbedding = await huggingFaceApi.featureExtraction({
         model:"sentence-transformers/all-MiniLM-L6-v2",
         inputs:query
+      });
+    } catch (error) {
+      console.error("HuggingFace API error:", error.message);
+      // Continue with text-based search only
+      queryEmbedding = null;
+    }
+    
+    const maxProductsPerPage=5
+    const skipAmount = (parseInt(page)-1)*maxProductsPerPage
+    
+    // Modify the search pipeline based on whether we have vector embeddings
+    const searchPipeline = [];
+    
+    // Only add vector search if we have embeddings
+    if (queryEmbedding) {
+      searchPipeline.push({
+        $vectorSearch:{
+          index:"vector_index",
+          path:"vector",
+          queryVector:queryEmbedding,
+          numCandidates:20,
+          limit:20,
+        },
+      });
+    }
+    
+    // Always include text-based searching
+    searchPipeline.push({
+      $match: {
+        $or: [
+          { category: new RegExp(query, "i") }, // Match by category
+          { name: new RegExp(query, "i") }, // Match by product name
+          { description: new RegExp(query,"i")}//match by description
+        ],
+      },
+    });
+    
+    searchPipeline.push({
+      $facet:{
+        metadata:[{ $count:"total" }],
+        data:[
+          { $skip:skipAmount },
+          { $limit:maxProductsPerPage },
+          { 
+            $project:{ 
+              _id:1,
+              name:1,
+              images:1,
+            }
+          },
+        ]
+      }
+    });
+    
+    const results = await Product.aggregate(searchPipeline);
+    
+    if(!results)
+      return res.status(404).json({
+        status:"failed",
+        message:"No results found"
       })
-      const maxProductsPerPage=5
-      const skipAmount = (parseInt(page)-1)*maxProductsPerPage
-      const results = await Product.aggregate([
-        {
-          $vectorSearch:{
-            index:"vector_index",
-            path:"vector",
-            queryVector:queryEmbedding,
-            numCandidates:20,
-            limit:20,
-          },
-        },
-        {
-          $match: {
-            $or: [
-              { category: new RegExp(query, "i") }, // Match by category
-              { name: new RegExp(query, "i") }, // Match by product name
-              { description: new RegExp(query,"i")}//match by description
-            ],
-          },
-        },
-        {
-          $facet:{
-            metadata:[{ $count:"total" }],
-            data:[
-              { $skip:skipAmount },
-              { $limit:maxProductsPerPage },
-              { 
-                $project:{ 
-                  _id:1,
-                  name:1,
-                  images:1,
-                }
-              }, //exclude vector field
-            ]
-          }
-        }
-      ])
-      if(!results)
-        return res.status(404).json({
-          status:"failed",
-          message:"No results found"
-        })
-        const totalResults = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0;
-        if(totalResults===0)
-        return res.status(400).json({
-          status: "failed",
+      
+    const totalResults = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0;
+    if(totalResults===0)
+      return res.status(400).json({
+        status: "failed",
         message: "No results found",
       })
 
-      res.status(200).json({
-        status:"success",
-        data:results[0].data
-      })
-    } catch (err) {
-      next(err)
-    }
+    res.status(200).json({
+      status:"success",
+      data:results[0].data
+    })
+  } catch (err) {
+    console.error("Search suggestions error:", err);
+    next(err)
+  }
 }
 export async function deleteProduct(req,res,next){
     try {
