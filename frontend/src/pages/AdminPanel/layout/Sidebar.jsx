@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, Package, Tag, FileText, Mail, X, LogOut, Disc3Icon, Ticket } from "lucide-react";
+import { Home, ShoppingBag, Package, Tag, FileText, Mail, X, LogOut, Disc3Icon, Ticket, Currency, IndianRupee, BadgeIndianRupeeIcon } from "lucide-react";
 
 const navItems = [
   { path: "/admin", icon: Home, label: "Home" },
@@ -10,6 +10,7 @@ const navItems = [
   { path: "coupons", icon: Ticket, label: "Coupons" },
   { path: "orders", icon: FileText, label: "Orders" },
   { path: "contact", icon: Mail, label: "Contact" },
+  { path: "currency", icon: BadgeIndianRupeeIcon, label: "Currency Rate" },
 ];
 
 const Sidebar = ({ onClose,onLogout }) => {

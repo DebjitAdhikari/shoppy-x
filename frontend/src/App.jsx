@@ -26,6 +26,9 @@ import ContactTab from './pages/AdminPanel/tabs/ContactTab';
 import AdminLogin from './pages/AdminPanel/tabs/AdminLogin';
 import SearchedProducts from './pages/SearchedProducts';
 import CouponsTab from './pages/AdminPanel/tabs/CouponsTab';
+import PaymentSuccess from './pages/PaymentSuccess';
+import { ToastContainer } from 'react-toastify';
+import CurrencyTab from './pages/AdminPanel/tabs/CurrencyTab';
 
 
 
@@ -127,6 +130,10 @@ const router = createBrowserRouter([
         path:"/order/:orderId",
         element:<OrderDetails></OrderDetails>
       },
+      {
+        path:"/payment-success",
+        element:<PaymentSuccess></PaymentSuccess>
+      },
       //admin panel comes from here 
       {
         path:"/admin",
@@ -139,7 +146,8 @@ const router = createBrowserRouter([
           { path: "offers", element: <OffersTab></OffersTab>},
           { path: "coupons", element: <CouponsTab></CouponsTab>},
           { path: "orders", element: <OrdersTab></OrdersTab>},
-          { path: "contact", element: <ContactTab></ContactTab>}
+          { path: "contact", element: <ContactTab></ContactTab>},
+          { path: "currency", element: <CurrencyTab></CurrencyTab>}
         ]
       },
       
@@ -150,7 +158,18 @@ const router = createBrowserRouter([
 function App() {
   return (
     <HelmetProvider>
-
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     <RouterProvider router={router}>
 
     </RouterProvider>

@@ -58,17 +58,18 @@ const SearchedProducts = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [theCurrentPage, setTheCurrentPage] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState(null);
-
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
-      price: null,
-      rating: null,
-      discount: null,
-    });
+    price: null,
+    rating: null,
+    discount: null,
+  });
   const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(null);
+
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const handleResize = () => {
@@ -80,73 +81,140 @@ const SearchedProducts = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // const filterProducts = (products) => {
-  //   return products.filter((product) => {
-  //     // Price Range Filter
-  //     if (selectedFilters["Price Range"]) {
-  //       const [min, max] = selectedFilters["Price Range"]
-  //         .split("-")
-  //         .map(Number);
-  //       if (max) {
-  //         if (product.price < min || product.price > max) return false;
-  //       } else {
-  //         if (product.price < min) return false;
-  //       }
-  //     }
+  // Function to check if required params are present, redirects if not
+  function restrictParams() {
+    const pageParam = searchParams.get("page");
+    const queryParam = searchParams.get("query");
+    if (!pageParam || !queryParam) {
+      navigate(`/`, { replace: true });
+      return false;
+    }
+    return true;
+  }
 
-  //     // Rating Filter
-  //     if (selectedFilters["Rating"]) {
-  //       const minRating = parseInt(selectedFilters["Rating"]);
-  //       if (parseFloat(product.rating) < minRating) return false;
-  //     }
+  // Function to get the current page from URL params
+  function getCurrentPage() {
+    return searchParams.get("page") || "1";
+  }
 
-  //     // Discount Filter
-  //     if (selectedFilters["Discount"]) {
-  //       const minDiscount = parseInt(selectedFilters["Discount"]);
-  //       if (product.discount < minDiscount) return false;
-  //     }
+  // Function to fetch products based on URL params
+  async function fetchProducts() {
+    setIsLoading(true);
+    const pageParam = searchParams.get("page");
+    const queryParam = searchParams.get("query");
+    setSearchQuery(queryParam);
+    setTheCurrentPage(parseInt(pageParam));
+    setTitle(queryParam);
 
-  //     return true;
-  //   });
-  // };
+    // Create URL params string from current search params
+    const urlParams = new URLSearchParams(searchParams).toString();
+    
+    const data = await getProductsByQueryService(queryParam, urlParams);
+    
+    if (data.status === "failed") {
+      console.log("no results found");
+      setTotalResults(0);
+      setTotalPages(0);
+      setProducts([]);
+      setIsLoading(false);
+      return;
+    }
+    
+    setTotalPages(data.totalPages);
+    setTotalResults(data.totalResults);
+    setProducts(data.data);
+    setIsLoading(false);
+    scrollToPageTop();
+  }
 
+  // Handle filter changes
   const handleFilterChange = (filterName, optionValue) => {
+    // Update local state for displaying checked status
     setSelectedFilters((prev) => ({
       ...prev,
       [filterName]: prev[filterName] === optionValue ? null : optionValue,
     }));
     
-    const queryRange=optionValue.split("-")
-    let currentParams
-    setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev);
-      const isSelected = selectedFilters[filterName]===optionValue
-      if(isSelected){
-        newParams.delete(`${filterName}[gte]`)
-        newParams.delete(`${filterName}[lte]`)
-        newParams.delete(`${filterName}`)
-        currentParams=newParams
-        return newParams
-      }
+    // Create new params without triggering a re-render
+    const newParams = new URLSearchParams(searchParams);
+    const isCurrentlySelected = selectedFilters[filterName] === optionValue;
+    
+    // If currently selected, remove the filter
+    if (isCurrentlySelected) {
+      newParams.delete(`${filterName}[gte]`);
+      newParams.delete(`${filterName}[lte]`);
+      newParams.delete(`${filterName}`);
+    } else {
+      // Otherwise, add the filter
+      const queryRange = optionValue.split("-");
       newParams.set(`${filterName}[gte]`, queryRange[0]);
-      if(filterName==="price"&& queryRange.length===2)
+      
+      if (filterName === "price" && queryRange.length === 2) {
         newParams.set(`${filterName}[lte]`, queryRange[1]);
-      else if(filterName==="price")
-        newParams.delete(`${filterName}[lte]`)
-      newParams.set("page", getCurrentPage()); // reset page on filter change
-      currentParams=newParams
-      return newParams;
-    });
-    // console.log("the current params",currentParams.toString())
-    // console.log("the current filter name",filterName)
-    // console.log("the current range",queryRange)
-    // console.log("the selected filter",selectedFilters)
-    // fetchProducts(currentParams.toString())
+      } else if (filterName === "price") {
+        newParams.delete(`${filterName}[lte]`);
+      }
+    }
+    
+    // Reset to page 1 when filter changes
+    newParams.set("page", "1");
+    
+    // Update URL without causing extra re-renders
+    setSearchParams(newParams, { replace: true });
   };
 
-  // const filteredProducts = filterProducts(products);
-  // const itemsPerPage = isMobile ? 10 : 15;
-  // const totalProductsPage = Math.ceil(filteredProducts.length / itemsPerPage);
+  // Handle sort change
+  const handleSortChange = (value) => {
+    setSortBy(value);
+    
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("sort", value);
+    setSearchParams(newParams, { replace: true });
+  };
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", newPage.toString());
+    setSearchParams(newParams, { replace: true });
+  };
+
+  // Main effect to load products when URL params change
+  useEffect(() => {
+    if (restrictParams()) {
+      fetchProducts();
+    }
+  }, [searchParams.toString()]); // Using toString() to avoid frequent re-renders
+
+  // Set initial selected filters based on URL params
+  useEffect(() => {
+    const priceGte = searchParams.get("price[gte]");
+    const priceLte = searchParams.get("price[lte]");
+    const ratingGte = searchParams.get("rating[gte]");
+    const discountGte = searchParams.get("discount[gte]");
+    
+    const newFilters = { ...selectedFilters };
+    
+    if (priceGte) {
+      const priceValue = priceLte ? `${priceGte}-${priceLte}` : `${priceGte}`;
+      newFilters.price = priceValue;
+    }
+    
+    if (ratingGte) {
+      newFilters.rating = ratingGte;
+    }
+    
+    if (discountGte) {
+      newFilters.discount = discountGte;
+    }
+    
+    setSelectedFilters(newFilters);
+    
+    const sortParam = searchParams.get("sort");
+    if (sortParam) {
+      setSortBy(sortParam);
+    }
+  }, []); // Empty dependency array so this only runs once on mount
 
   const renderFilterCheckbox = (filter, option) => (
     <label key={option.value} className="flex items-center">
@@ -159,69 +227,6 @@ const SearchedProducts = () => {
       <span className="ml-2 text-gray-600">{option.label}</span>
     </label>
   );
-
-  const navigate = useNavigate();
-  //getting which category
-  // const { query } = useParams();
-  //for gettin query params
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  //to have query params in url
-  function restrictParams() {
-    const pageParam = searchParams.get("page");
-    const queryParam = searchParams.get("query");
-    if (!pageParam || !queryParam) {
-      navigate(`/`, { replace: true });
-      return;
-    }
-  }
-  function getCurrentPage(){
-    return searchParams.get("page")
-  }
-  async function fetchProductsTitle() {
-    const title = searchParams.get("query");
-    console.log(title)
-    // console.log("title",title)
-    // setTitle(data.title);
-    setTitle(title);
-  }
-
-  async function fetchProducts(urlParams) {
-    setIsLoading(true);
-    const pageParam = searchParams.get("page");
-    const queryParam = searchParams.get("query");
-    setSearchQuery(queryParam);
-    setTheCurrentPage(parseInt(pageParam));
-    const data = await getProductsByQueryService(queryParam,urlParams);
-    // console.log("found",data)
-    if (data.status === "failed") {
-      console.log("no results found");
-      setTotalResults(0);
-      setTotalPages(0);
-      setIsLoading(false);
-      return;
-    }
-    setTotalPages(data.totalPages);
-    setTotalResults(data.totalResults);
-    setProducts(data.data);
-    setIsLoading(false);
-    scrollToPageTop();
-  }
-  // useEffect(() => {
-  //   // fetchCategoryTitle();
-  //   fetchProducts()
-  // }, []);
-  useEffect(() => {
-    //redirect user to have query page params
-    restrictParams();
-    fetchProductsTitle();
-    let currentParams
-    setSearchParams((prev)=>{
-      currentParams=new URLSearchParams(prev)
-      return currentParams
-    })
-    fetchProducts(currentParams);
-  }, [searchParams]);
 
   return (
     <>
@@ -284,10 +289,11 @@ const SearchedProducts = () => {
           </div>
 
           <div className="flex flex-wrap gap-3 items-center">
-            <div className="relative flex-1 sm:flex-none">
+            {/* sorting */}
+            {/* <div className="relative flex-1 sm:flex-none">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => handleSortChange(e.target.value)}
                 className="w-full sm:w-auto appearance-none bg-white border border-gray-300 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {sortOptions.map((option) => (
@@ -297,7 +303,7 @@ const SearchedProducts = () => {
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-            </div>
+            </div> */}
 
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -325,7 +331,7 @@ const SearchedProducts = () => {
               <div className="p-4 overflow-y-auto h-full pb-32">
                 {filters.map((filter) => (
                   <div key={filter.name} className="mb-6">
-                    <h3 className="font-semibold mb-3">{filter.name}</h3>
+                    <h3 className="font-semibold mb-3 capitalize">{filter.name}</h3>
                     <div className="space-y-2">
                       {filter.options.map((option) =>
                         renderFilterCheckbox(filter, option)
@@ -353,7 +359,7 @@ const SearchedProducts = () => {
               <div className="bg-white rounded-lg shadow p-6 sticky top-20">
                 {filters.map((filter) => (
                   <div key={filter.name} className="mb-6 last:mb-0">
-                    <h3 className="font-semibold mb-3">{filter.name}</h3>
+                    <h3 className="font-semibold mb-3 capitalize">{filter.name}</h3>
                     <div className="space-y-2">
                       {filter.options.map((option) =>
                         renderFilterCheckbox(filter, option)
@@ -368,7 +374,7 @@ const SearchedProducts = () => {
           {/* Products Grid */}
           <div className="flex-1">
             {isLoading ? (
-              <div className=" h-[60vh]">
+              <div className="h-[60vh]">
                 <Loader></Loader>
               </div>
             ) : totalResults === 0 ? (
@@ -386,12 +392,7 @@ const SearchedProducts = () => {
               <div className="mt-8 sm:mt-12 flex justify-center">
                 <div className="flex flex-wrap justify-center gap-2">
                   <button
-                    onClick={() => {
-                      setSearchParams({
-                        query: searchParams.get("query"),
-                        page: theCurrentPage - 1,
-                      });
-                    }}
+                    onClick={() => handlePageChange(theCurrentPage - 1)}
                     disabled={theCurrentPage === 1}
                     className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -400,30 +401,20 @@ const SearchedProducts = () => {
                   {Array.from({ length: totalPages }, (_, i) => (
                     <button
                       key={i + 1}
-                      onClick={() => {
-                        setSearchParams({
-                          query: searchParams.get("query"),
-                          page: i + 1,
-                        });
-                      }}
+                      onClick={() => handlePageChange(i + 1)}
                       className={`px-3 sm:px-4 py-2 border rounded-lg 
-                    ${
-                      theCurrentPage === i + 1
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-50 text-black"
-                    }`}
+                      ${
+                        theCurrentPage === i + 1
+                          ? "bg-gray-900 text-white"
+                          : "bg-gray-50 text-black"
+                      }`}
                     >
                       {i + 1}
                     </button>
                   ))}
 
                   <button
-                    onClick={() => {
-                      setSearchParams({
-                        query: searchParams.get("query"),
-                        page: theCurrentPage + 1,
-                      });
-                    }}
+                    onClick={() => handlePageChange(theCurrentPage + 1)}
                     disabled={theCurrentPage === totalPages}
                     className="px-3 sm:px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >

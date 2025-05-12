@@ -11,10 +11,12 @@ import adminRouter from "./routers/adminRouter.js"
 import bannerRouter from "./routers/bannerRouter.js"
 import offerRouter from "./routers/offerRouter.js"
 import orderRouter from "./routers/orderRouter.js"
+import paymentRouter from "./routers/paymentRouter.js"
 import couponRouter from "./routers/couponRouter.js"
 import contactRouter from "./routers/contactRouter.js"
 import mailRouter from "./routers/mailRouter.js"
 import reviewRouter from "./routers/reviewRouter.js"
+import currencyRateRouter from "./routers/currencyRateRouter.js"
 import cookieParser from "cookie-parser"
 dotenv.config()
 
@@ -48,6 +50,8 @@ app.use("/api/v1/coupons",couponRouter)
 app.use("/api/v1/orders",orderRouter)
 app.use("/api/v1/contact",contactRouter)
 app.use("/api/v1/mail",mailRouter)
+app.use("/api/v1/payments",paymentRouter)
+app.use("/api/v1/currencyRate",currencyRateRouter)
 
 
 app.use("*",(req,res,next)=>{

@@ -104,7 +104,7 @@ const Profile = () => {
   }
   async function userLogout() {
     const data = await logout()
-    console.log(data.data.status)
+    // console.log(data.data.status)
     if(data.data.status==="success")
       navigate("/userAuth")
   }
@@ -289,9 +289,7 @@ const Profile = () => {
     {
     
     <div className="max-w-7xl min-h-[90vh] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <ToastContainer
       
-      />
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar */}
         <div className="w-full md:w-64 flex-shrink-0">

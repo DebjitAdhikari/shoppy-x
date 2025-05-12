@@ -6,7 +6,7 @@ export async function createOrder(req,res,next){
         const {products,totalPrice,finalPrice,orderStatus} = req.body
         // console.log(req.body)
         // console.log(user)
-        console.log(products)
+        // console.log(products)
         if(products.length===0||!totalPrice ||!finalPrice ||!orderStatus)
             return res.status(400).json({
                 status:"failed",
@@ -66,7 +66,7 @@ export async function getAllUserOrders(req,res,next){
     try {
         const user = req.user
         // const orders= await Order.find({user:user._id}).populate("user","name contactNo address")
-        const orders= await Order.find({user:user._id})
+        const orders= await Order.find({user:user._id}).sort({createdAt:-1})
         if(!orders)
             return res.status(400).json({
                 status:"failed",
@@ -117,7 +117,7 @@ export async function getOrdersByPage(req,res,next){
         const skipAmount = (page-1)*maxOrdersPerPage
         const totalResults= await Order.countDocuments({})
         const totalPages = Math.ceil(totalResults/maxOrdersPerPage)
-        console.log(page)
+        // console.log(page)
         const orders= await Order.find().skip(skipAmount).limit(maxOrdersPerPage).populate({
             path:"user",
             select:"name"
@@ -150,7 +150,7 @@ export async function getOrderByOrderId(req,res,next){
                 status:"failed",
                 message:"No orders found"
             })
-        console.log(order)
+        // console.log(order)
         res.status(200).json({
             status:"success",
             data:{
@@ -214,7 +214,7 @@ export async function getOrderBySearch(req,res,next){
                 status:"failed",
                 message:"Order doesn't exist"
             })
-        console.log(order)
+        // console.log(order)
         res.status(200).json({
             status:"success",
             data:order

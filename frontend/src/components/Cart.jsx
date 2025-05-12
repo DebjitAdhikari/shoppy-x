@@ -10,6 +10,7 @@ import EmptyCart from "./EmptyCart.jsx";
 import getCouponByNameService from "../services/coupons/getCouponsByNameService.js";
 import createOrderService from "../services/orders/createOrderService.js";
 import successToastMessage from "../utils/successToastMessage.js";
+import createPaymentService from "../services/payment/createPaymentService.js";
 
 function Cart({setIsCartOpen}) {
   const [cartProducts,setCartProducts]=useState([])
@@ -19,8 +20,10 @@ function Cart({setIsCartOpen}) {
   const [isLoggedIn,setIsLoggedIn]=useState(false)
   const [coupon, setCoupon] = useState("");
   const [isValidCoupon, setisValidCoupon] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
   const [discountPrice, setDiscountPrice] = useState(0);
+
   const navigate = useNavigate()
 
   async function hasLoggedIn() {
@@ -97,16 +100,22 @@ function Cart({setIsCartOpen}) {
       finalPrice:finalAmount>0?finalAmount:totalAmount
     }
     // console.log(products)
-    const data = await createOrderService(orderData)
+    // const data = await createOrderService(orderData)
+    setIsProcessing(true)
+    const data = await createPaymentService(orderData)
     console.log(data)
+    if(data?.url){
+      window.location.href = data.url
+    }
     // if(data.status==="success")
     //   setCartProducts([])
-    fetchAllCartProducts()
+    // fetchAllCartProducts()
 
-    successToastMessage("Order Confirmed successfully!")
+    // successToastMessage("Order Confirmed successfully!")
   }
   useEffect(()=>{
     hasLoggedIn()
+    console.log("hi")
     fetchAllCartProducts()
   },[])
 
@@ -190,8 +199,12 @@ function Cart({setIsCartOpen}) {
         </div>
       </div>
 
-      <button onClick={submitOrder} className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-300">
-        Proceed to Checkout
+      <button
+      disabled={isProcessing} onClick={submitOrder} className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-300">
+        {
+          isProcessing?"Redirecting to payment...":"Proceed to Checkout"
+        }
+        
       </button>
     </div>
                   
