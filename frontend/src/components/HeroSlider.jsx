@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import getAllBanners from "../services/homebanners/getAllBanners.js";
 import Loader from "./Loader.jsx";
 import scrollToPageTop from "../utils/scrollToPageTop.js";
+import { useNavigate } from "react-router-dom";
 
 
 function HeroSlider() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [slides,setSlides]=useState([])
+    const navigate=useNavigate()
     async function fetchAllBanners(){
       const {data} = await getAllBanners()
       setSlides(data)
@@ -55,7 +57,7 @@ function HeroSlider() {
             <div className="text-white max-w-xl">
               <h1 className="text-5xl font-bold mb-6">{slide?.heading}</h1>
               <p className="text-xl mb-8">{slide?.description}</p>
-              <button className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold flex items-center space-x-2 hover:bg-gray-100 transition duration-300">
+              <button onClick={()=>navigate("/offers")} className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold flex items-center space-x-2 hover:bg-gray-100 transition duration-300">
                 <span>Shop Now</span>
                 <ArrowRight className="h-5 w-5" />
               </button>
