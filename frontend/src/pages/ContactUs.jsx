@@ -145,7 +145,7 @@ const ContactUs = () => {
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-900">Email</p>
                         <a href={`mailto:${companyContact[0]?.email}`} className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
-                          {companyContact[0]?.email || 'contact@company.com'}
+                          {companyContact[0]?.email || 'shoppyxinfo@gmail.com'}
                         </a>
                       </div>
                     </div>
