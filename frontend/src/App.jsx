@@ -29,6 +29,9 @@ import CouponsTab from './pages/AdminPanel/tabs/CouponsTab';
 import PaymentSuccess from './pages/PaymentSuccess';
 import { ToastContainer } from 'react-toastify';
 import CurrencyTab from './pages/AdminPanel/tabs/CurrencyTab';
+import SocialMediaPage from './pages/SocialMediaPage';
+import AboutUs from './pages/AboutUs';
+import NoRoute from './pages/NoRoute';
 
 
 
@@ -83,6 +86,14 @@ const router = createBrowserRouter([
         element:<HomePage></HomePage>
       },
       {
+        path:"/about-us",
+        element:<AboutUs></AboutUs>
+      },
+      {
+        path:"/route-not-found",
+        element:<NoRoute></NoRoute>
+      },
+      {
         path:"/userAuth",
         element:<UserAuth></UserAuth>
       },
@@ -133,6 +144,10 @@ const router = createBrowserRouter([
       {
         path:"/payment-success",
         element:<PaymentSuccess></PaymentSuccess>
+      },
+      {
+        path:"/social-media-redirected",
+        element:<SocialMediaPage></SocialMediaPage>
       },
       //admin panel comes from here 
       {
