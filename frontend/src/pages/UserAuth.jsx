@@ -2,9 +2,13 @@ import { Link, useNavigate } from "react-router-dom"
 import checkLogin from "../services/users/checkLogin.js"
 import { useEffect } from "react"
 import { Helmet } from "react-helmet-async"
+import scrollToPageTop from "../utils/scrollToPageTop.js"
 
 function UserAuth() {
     const navigate = useNavigate()
+    useEffect(()=>{
+                scrollToPageTop()
+              },[])
     async function checkIsLoggedIn() {
         const data = await checkLogin()
         if(data.data.status==="success")
